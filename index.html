@@ -71,8 +71,8 @@
       { id: 'anxious', label: '急躁焦慮', emoji: '🏃' }
     ];
 
-    // 🔴 已為您填入專屬 Google API 金鑰！
-    const apiKey = "AIzaSyBRCM1_1REPzsz-ZkeI6JQrIIklMLIJjHA"; 
+    // 🔴 已為您填入全新建立的 Google API 金鑰！
+    const apiKey = "AIzaSyB6snoI7ggEUN62MVi6wC8BAmHL1wlDDFQ"; 
 
     // --- 輔助函式區 ---
     const pcmToWav = (base64Data, sampleRate = 24000) => {
@@ -200,14 +200,55 @@
       const [selectedPersonality, setSelectedPersonality] = useState(PERSONALITIES[0].id);
       const [selectedMood, setSelectedMood] = useState(MOODS[0].id);
 
-      // 移除語音相關狀態，專注於純文字對話
+      // 新增：語音相關狀態
+      const [isListening, setIsListening] = useState(false);
+      const [useAudioResponse, setUseAudioResponse] = useState(true);
+      const recognitionRef = useRef(null);
+
+      // 初始化語音相關狀態與純文字對話
       useEffect(() => {
         const initialMessages = {};
         CHARACTERS.forEach(char => { initialMessages[char.id] = [{ sender: 'bot', text: char.greeting }]; });
         setMessages(initialMessages);
+
+        // 初始化語音辨識 (Speech-to-Text)
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+          recognitionRef.current = new SpeechRecognition();
+          recognitionRef.current.continuous = false;
+          recognitionRef.current.interimResults = false;
+          recognitionRef.current.lang = 'zh-TW';
+          recognitionRef.current.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            setInputText(transcript);
+            setIsListening(false);
+          };
+          recognitionRef.current.onend = () => setIsListening(false);
+          recognitionRef.current.onerror = () => setIsListening(false);
+        }
       }, []);
 
       const activeChar = CHARACTERS[selectedIndex];
+
+      // 新增：切換麥克風監聽
+      const toggleListening = () => {
+        if (!recognitionRef.current) { alert("您的瀏覽器不支援語音輸入功能！"); return; }
+        if (isListening) recognitionRef.current.stop();
+        else { setIsListening(true); recognitionRef.current.start(); }
+      };
+
+      // 新增：觸發原生語音播放 (Text-to-Speech)
+      const playTTS = (text) => {
+        if (!useAudioResponse) return;
+        try {
+          // 使用瀏覽器內建原生語音引擎，避免 API 權限問題
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'zh-TW';
+          utterance.rate = 1.05; // 微調語速，聽起來更活潑
+          utterance.pitch = 1.1; // 微調音調，更有公仔感
+          window.speechSynthesis.speak(utterance);
+        } catch (error) { console.error("TTS Error:", error); }
+      };
 
       const handlePrev = () => setSelectedIndex((prev) => (prev === 0 ? CHARACTERS.length - 1 : prev - 1));
       const handleNext = () => setSelectedIndex((prev) => (prev === CHARACTERS.length - 1 ? 0 : prev + 1));
@@ -257,8 +298,12 @@
           });
           const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "抱歉，我現在有點心不在焉。";
           setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: botReply }] }));
+          
+          // 觸發語音播放
+          playTTS(botReply);
         } catch (error) {
-          setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: "連線異常，請檢查金鑰或稍後再試！" }] }));
+          // 將真實錯誤訊息印在聊天畫面上，方便一眼看出問題
+          setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: `連線異常：${error.message}` }] }));
         } finally { setIsTyping(false); }
       };
 
@@ -271,9 +316,15 @@
                 <span className="hidden md:inline">返回探探里山首頁</span>
               </a>
               <h1 className="text-lg sm:text-xl font-bold text-slate-800 tracking-wide hidden sm:flex items-center gap-2">
-                <Sparkles className="text-amber-500" size={20} /> 探探里山 3D 公仔輔助文字室
+                <Sparkles className="text-amber-500" size={20} /> 探探里山 3D 公仔輔助語音室
               </h1>
             </div>
+            
+            {/* 新增：語音開關按鈕 */}
+            <button onClick={() => setUseAudioResponse(!useAudioResponse)} className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all text-xs font-bold shrink-0 ${useAudioResponse ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'}`}>
+              {useAudioResponse ? <Volume2 size={16} /> : <VolumeX size={16} />}
+              <span className="hidden sm:inline">{useAudioResponse ? '語音開啟' : '語音關閉'}</span>
+            </button>
           </header>
 
           <div className="bg-white border-y border-slate-100 shadow-sm z-10 px-4 py-3 flex flex-col gap-3">
@@ -365,8 +416,12 @@
               </div>
               <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-2">
                 <div className="flex gap-2">
+                  {/* 新增：麥克風輸入按鈕 */}
+                  <button type="button" onClick={toggleListening} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md shrink-0 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200'}`}>
+                    {isListening ? <Mic size={20} /> : <MicOff size={20} />}
+                  </button>
                   <form onSubmit={handleSend} className="flex-1 flex gap-2">
-                    <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping} placeholder={isTyping ? "思考中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all" />
+                    <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping} placeholder={isListening ? "傾聽中..." : isTyping ? "思考中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all" />
                     <button type="submit" disabled={!inputText.trim() || isTyping} className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-all shadow-md shrink-0 ${inputText.trim() && !isTyping ? activeChar.color : 'bg-slate-200 text-slate-400'}`}><Send size={20} /></button>
                   </form>
                 </div>
