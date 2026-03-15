@@ -26,7 +26,7 @@
   <script type="text/babel">
     const { useState, useEffect, useRef } = React;
 
-    // --- 內建 SVG 圖示庫 (替代原本的 lucide-react) ---
+    // --- 內建 SVG 圖示庫 ---
     const Icon = ({ children, size = 24, className = "" }) => (
       <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>{children}</svg>
     );
@@ -34,7 +34,7 @@
     const ChevronLeft = (p) => <Icon {...p}><polyline points="15 18 9 12 15 6"></polyline></Icon>;
     const ChevronRight = (p) => <Icon {...p}><polyline points="9 18 15 12 9 6"></polyline></Icon>;
     const Home = (p) => <Icon {...p}><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></Icon>;
-    const Sparkles = (p) => <Icon {...p}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></Icon>;
+    const Sparkles = (p) => <Icon {...p}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1-1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path></Icon>;
     const Volume2 = (p) => <Icon {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path></Icon>;
     const VolumeX = (p) => <Icon {...p}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></Icon>;
     const Cpu = (p) => <Icon {...p}><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></Icon>;
@@ -48,11 +48,11 @@
 
     // --- 設定檔區 ---
     const CHARACTERS = [
-      { id: 0, name: '環境永續博士', role: '全球氣候與永續發展專家', emoji: '👨‍🔬', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-slate-50', sleeveColor: 'bg-slate-50', legColor: 'bg-slate-800', shoeColor: 'bg-slate-900', color: 'bg-emerald-500', baseColor: 'bg-emerald-600', lightColor: 'bg-emerald-100', greeting: '你好！我是環境永續博士。想了解 ESG 或全球氣候變遷的趨勢嗎？', voiceName: 'Charon' },
-      { id: 1, name: '聊天盟娃', role: '你的日常傾聽好夥伴', emoji: '🧸', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-blue-400', sleeveColor: 'bg-blue-400', legColor: 'bg-sky-500', shoeColor: 'bg-white', color: 'bg-blue-400', baseColor: 'bg-blue-500', lightColor: 'bg-blue-100', greeting: '嘿！我是聊天盟娃～今天過得好嗎？不管什麼煩惱都可以跟我說喔！', voiceName: 'Leda' },
-      { id: 2, name: '生態小博士', role: '動植物與自然生態達人', emoji: '🤠', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-[#c19a6b]', sleeveColor: 'bg-green-200', legColor: 'bg-[#8b5a2b]', shoeColor: 'bg-[#5c3a21]', color: 'bg-green-500', baseColor: 'bg-green-600', lightColor: 'bg-green-100', greeting: '嗨！我是生態小博士。大自然充滿奧秘，你想認識哪種稀有動植物呢？', voiceName: 'Puck' },
-      { id: 3, name: '永續旅遊專家', role: '低碳旅行與在地文化達人', emoji: '🚂', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-indigo-400', sleeveColor: 'bg-indigo-400', legColor: 'bg-slate-600', shoeColor: 'bg-slate-800', color: 'bg-indigo-500', baseColor: 'bg-indigo-600', lightColor: 'bg-indigo-100', greeting: '出發囉！我是永續旅遊專家。想知道如何玩得盡興、深入在地又能降低碳足跡嗎？', voiceName: 'Zephyr' },
-      { id: 4, name: '循環小精靈', role: '資源回收與零廢棄導師', emoji: '🧚', skinColor: 'bg-teal-100', outfitColor: 'bg-teal-500', sleeveColor: 'bg-teal-500', legColor: 'bg-teal-700', shoeColor: 'bg-teal-900', color: 'bg-teal-500', baseColor: 'bg-teal-600', lightColor: 'bg-teal-100', greeting: '轉轉轉！我是循環小精靈。垃圾其實都是放錯位置的資源，我們來做分類吧！', voiceName: 'Aoede' }
+      { id: 0, name: '環境永續博士', role: '全球氣候與永續發展專家', emoji: '👨‍🔬', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-slate-50', sleeveColor: 'bg-slate-50', legColor: 'bg-slate-800', shoeColor: 'bg-slate-900', color: 'bg-emerald-500', baseColor: 'bg-emerald-600', lightColor: 'bg-emerald-100', greeting: '你好！我是環境永續博士。想了解 ESG 或全球氣候變遷的趨勢嗎？' },
+      { id: 1, name: '聊天盟娃', role: '你的日常傾聽好夥伴', emoji: '🧸', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-blue-400', sleeveColor: 'bg-blue-400', legColor: 'bg-sky-500', shoeColor: 'bg-white', color: 'bg-blue-400', baseColor: 'bg-blue-500', lightColor: 'bg-blue-100', greeting: '嘿！我是聊天盟娃～今天過得好嗎？不管什麼煩惱都可以跟我說喔！' },
+      { id: 2, name: '生態小博士', role: '動植物與自然生態達人', emoji: '🤠', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-[#c19a6b]', sleeveColor: 'bg-green-200', legColor: 'bg-[#8b5a2b]', shoeColor: 'bg-[#5c3a21]', color: 'bg-green-500', baseColor: 'bg-green-600', lightColor: 'bg-green-100', greeting: '嗨！我是生態小博士。大自然充滿奧秘，你想認識哪種稀有動植物呢？' },
+      { id: 3, name: '永續旅遊專家', role: '低碳旅行與在地文化達人', emoji: '🚂', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-indigo-400', sleeveColor: 'bg-indigo-400', legColor: 'bg-slate-600', shoeColor: 'bg-slate-800', color: 'bg-indigo-500', baseColor: 'bg-indigo-600', lightColor: 'bg-indigo-100', greeting: '出發囉！我是永續旅遊專家。想知道如何玩得盡興、深入在地又能降低碳足跡嗎？' },
+      { id: 4, name: '循環小精靈', role: '資源回收與零廢棄導師', emoji: '🧚', skinColor: 'bg-teal-100', outfitColor: 'bg-teal-500', sleeveColor: 'bg-teal-500', legColor: 'bg-teal-700', shoeColor: 'bg-teal-900', color: 'bg-teal-500', baseColor: 'bg-teal-600', lightColor: 'bg-teal-100', greeting: '轉轉轉！我是循環小精靈。垃圾其實都是放錯位置的資源，我們來做分類吧！' }
     ];
 
     const PERSONALITIES = [
@@ -71,34 +71,20 @@
       { id: 'anxious', label: '急躁焦慮', emoji: '🏃' }
     ];
 
-    // 🔴 已為您填入全新建立的 Google API 金鑰！
+    // ✅ 您的專屬金鑰
     const apiKey = "AIzaSyB6snoI7ggEUN62MVi6wC8BAmHL1wlDDFQ"; 
 
     // --- 輔助函式區 ---
-    const pcmToWav = (base64Data, sampleRate = 24000) => {
-      const byteCharacters = atob(base64Data);
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) byteNumbers[i] = byteCharacters.charCodeAt(i);
-      const byteArray = new Uint8Array(byteNumbers);
-      const buffer = new ArrayBuffer(44 + byteArray.length);
-      const view = new DataView(buffer);
-      const writeString = (offset, string) => { for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i)); };
-      writeString(0, 'RIFF'); view.setUint32(4, 32 + byteArray.length, true); writeString(8, 'WAVE'); writeString(12, 'fmt ');
-      view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
-      view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true); writeString(36, 'data');
-      view.setUint32(40, byteArray.length, true);
-      const pcmData = new Int16Array(buffer, 44);
-      const rawPcm = new Int16Array(byteArray.buffer);
-      pcmData.set(rawPcm);
-      return new Blob([buffer], { type: 'audio/wav' });
-    };
-
     const fetchWithRetry = async (url, options, retries = 5) => {
       const delays = [1000, 2000, 4000, 8000, 16000];
       for (let i = 0; i < retries; i++) {
         try {
           const res = await fetch(url, options);
-          if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+          if (!res.ok) {
+            // 解析並抓取 Google 伺服器回傳的真實錯誤訊息
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error?.message || `HTTP error! status: ${res.status}`);
+          }
           return await res.json();
         } catch (error) {
           if (i === retries - 1) throw error;
@@ -199,19 +185,16 @@
       const [selectedAi, setSelectedAi] = useState('gemini'); 
       const [selectedPersonality, setSelectedPersonality] = useState(PERSONALITIES[0].id);
       const [selectedMood, setSelectedMood] = useState(MOODS[0].id);
-
-      // 新增：語音相關狀態
+      
       const [isListening, setIsListening] = useState(false);
       const [useAudioResponse, setUseAudioResponse] = useState(true);
       const recognitionRef = useRef(null);
 
-      // 初始化語音相關狀態與純文字對話
       useEffect(() => {
         const initialMessages = {};
         CHARACTERS.forEach(char => { initialMessages[char.id] = [{ sender: 'bot', text: char.greeting }]; });
         setMessages(initialMessages);
 
-        // 初始化語音辨識 (Speech-to-Text)
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
           recognitionRef.current = new SpeechRecognition();
@@ -230,22 +213,20 @@
 
       const activeChar = CHARACTERS[selectedIndex];
 
-      // 新增：切換麥克風監聽
       const toggleListening = () => {
         if (!recognitionRef.current) { alert("您的瀏覽器不支援語音輸入功能！"); return; }
         if (isListening) recognitionRef.current.stop();
         else { setIsListening(true); recognitionRef.current.start(); }
       };
 
-      // 新增：觸發原生語音播放 (Text-to-Speech)
+      // ✅ 採用瀏覽器內建原生語音引擎，穩定發音不報錯
       const playTTS = (text) => {
         if (!useAudioResponse) return;
         try {
-          // 使用瀏覽器內建原生語音引擎，避免 API 權限問題
           const utterance = new SpeechSynthesisUtterance(text);
           utterance.lang = 'zh-TW';
-          utterance.rate = 1.05; // 微調語速，聽起來更活潑
-          utterance.pitch = 1.1; // 微調音調，更有公仔感
+          utterance.rate = 1.05;
+          utterance.pitch = 1.1;
           window.speechSynthesis.speak(utterance);
         } catch (error) { console.error("TTS Error:", error); }
       };
@@ -270,10 +251,18 @@
         setInputText('');
         setIsTyping(true);
 
-        const historyContents = newMsgs[currentActiveId].filter(msg => msg.text !== activeChar.greeting).map(msg => ({
-          role: msg.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: msg.text }]
-        }));
+        // ✅ 智慧清理對話紀錄，防止格式錯誤導致 API 拒絕
+        const rawHistory = newMsgs[currentActiveId].filter(msg => msg.text !== activeChar.greeting && !msg.text.includes("連線異常"));
+        const historyContents = [];
+        for (const msg of rawHistory) {
+          const role = msg.sender === 'user' ? 'user' : 'model';
+          // 合併連續相同角色的訊息，符合 API 規範
+          if (historyContents.length > 0 && historyContents[historyContents.length - 1].role === role) {
+            historyContents[historyContents.length - 1].parts[0].text += "\n" + msg.text;
+          } else {
+            historyContents.push({ role, parts: [{ text: msg.text }] });
+          }
+        }
 
         const personalityLabel = PERSONALITIES.find(p => p.id === selectedPersonality)?.label;
         const moodLabel = MOODS.find(m => m.id === selectedMood)?.label;
@@ -291,18 +280,16 @@
         `;
 
         try {
-          // 將模型改為正式對外公開的 gemini-1.5-flash，解決連線異常問題
-          const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          // ✅ 使用正式對外公開的最新模型 (gemini-1.5-flash-latest)
+          const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: historyContents, systemInstruction: { parts: [{ text: systemPrompt }] } })
           });
           const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "抱歉，我現在有點心不在焉。";
           setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: botReply }] }));
           
-          // 觸發語音播放
           playTTS(botReply);
         } catch (error) {
-          // 將真實錯誤訊息印在聊天畫面上，方便一眼看出問題
           setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: `連線異常：${error.message}` }] }));
         } finally { setIsTyping(false); }
       };
@@ -319,8 +306,6 @@
                 <Sparkles className="text-amber-500" size={20} /> 探探里山 3D 公仔輔助語音室
               </h1>
             </div>
-            
-            {/* 新增：語音開關按鈕 */}
             <button onClick={() => setUseAudioResponse(!useAudioResponse)} className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all text-xs font-bold shrink-0 ${useAudioResponse ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'}`}>
               {useAudioResponse ? <Volume2 size={16} /> : <VolumeX size={16} />}
               <span className="hidden sm:inline">{useAudioResponse ? '語音開啟' : '語音關閉'}</span>
@@ -410,13 +395,12 @@
                 {isTyping && (
                   <div className="flex justify-start items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-lg shadow-sm border border-slate-100 shrink-0">{activeChar.emoji}</div>
-                    <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">AI 正在思考中...</div>
+                    <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">AI 與語音引擎生成中...</div>
                   </div>
                 )}
               </div>
               <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-2">
                 <div className="flex gap-2">
-                  {/* 新增：麥克風輸入按鈕 */}
                   <button type="button" onClick={toggleListening} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md shrink-0 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200'}`}>
                     {isListening ? <Mic size={20} /> : <MicOff size={20} />}
                   </button>
