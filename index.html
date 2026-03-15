@@ -71,7 +71,7 @@
       { id: 'anxious', label: '急躁焦慮', emoji: '🏃' }
     ];
 
-    // ✅ 您提供的專屬金鑰
+    // ✅ 您專屬的 API 金鑰
     const apiKey = "AIzaSyB6snoI7ggEUN62MVi6wC8BAmHL1wlDDFQ"; 
 
     // --- 輔助函式區 ---
@@ -188,6 +188,7 @@
       const [isListening, setIsListening] = useState(false);
       const [useAudioResponse, setUseAudioResponse] = useState(true);
       const recognitionRef = useRef(null);
+      const modelRef = useRef(null); // 用於儲存自動探索到的模型名稱
 
       useEffect(() => {
         const initialMessages = {};
@@ -250,6 +251,27 @@
         setInputText('');
         setIsTyping(true);
 
+        // ✅ 自動探索並記憶您的金鑰所支援的最佳模型 (防範 404 錯誤)
+        if (!modelRef.current) {
+          try {
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+            const data = await res.json();
+            if (data.models) {
+              const modelNames = data.models.map(m => m.name.replace('models/', ''));
+              console.log("可用模型清單:", modelNames);
+              // 依序尋找最合適的可用模型
+              const preferences = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-002', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+              modelRef.current = preferences.find(p => modelNames.includes(p)) || modelNames.find(n => n.includes('gemini')) || 'gemini-1.5-flash';
+            }
+          } catch (e) {
+            console.error("探索模型失敗:", e);
+            modelRef.current = 'gemini-1.5-flash';
+          }
+        }
+        const modelToUse = modelRef.current || 'gemini-1.5-flash';
+        console.log("本次使用的模型為:", modelToUse);
+
+        // 清理對話歷史，防止格式錯誤導致 API 拒絕
         const rawHistory = newMsgs[currentActiveId].filter(msg => msg.text !== activeChar.greeting && !msg.text.includes("連線異常"));
         const historyContents = [];
         for (const msg of rawHistory) {
@@ -277,8 +299,8 @@
         `;
 
         try {
-          // ✅ 正確且穩定的模型端點：gemini-1.5-flash
-          const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          // ✅ 呼叫自動探索到的正確端點
+          const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${apiKey}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: historyContents, systemInstruction: { parts: [{ text: systemPrompt }] } })
           });
@@ -392,7 +414,7 @@
                 {isTyping && (
                   <div className="flex justify-start items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-lg shadow-sm border border-slate-100 shrink-0">{activeChar.emoji}</div>
-                    <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">AI 與語音引擎生成中...</div>
+                    <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">AI 正在智慧搜尋最佳模型...</div>
                   </div>
                 )}
               </div>
