@@ -199,61 +199,15 @@
       const [selectedAi, setSelectedAi] = useState('gemini'); 
       const [selectedPersonality, setSelectedPersonality] = useState(PERSONALITIES[0].id);
       const [selectedMood, setSelectedMood] = useState(MOODS[0].id);
-      
-      const [isListening, setIsListening] = useState(false);
-      const [useAudioResponse, setUseAudioResponse] = useState(true);
-      const recognitionRef = useRef(null);
 
+      // 移除語音相關狀態，專注於純文字對話
       useEffect(() => {
         const initialMessages = {};
         CHARACTERS.forEach(char => { initialMessages[char.id] = [{ sender: 'bot', text: char.greeting }]; });
         setMessages(initialMessages);
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-          recognitionRef.current = new SpeechRecognition();
-          recognitionRef.current.continuous = false;
-          recognitionRef.current.interimResults = false;
-          recognitionRef.current.lang = 'zh-TW';
-          recognitionRef.current.onresult = (event) => {
-            const transcript = event.results[0][0].transcript;
-            setInputText(transcript);
-            setIsListening(false);
-          };
-          recognitionRef.current.onend = () => setIsListening(false);
-          recognitionRef.current.onerror = () => setIsListening(false);
-        }
       }, []);
 
       const activeChar = CHARACTERS[selectedIndex];
-
-      const toggleListening = () => {
-        if (!recognitionRef.current) { alert("您的瀏覽器不支援語音輸入功能！"); return; }
-        if (isListening) recognitionRef.current.stop();
-        else { setIsListening(true); recognitionRef.current.start(); }
-      };
-
-      const playTTS = async (text) => {
-        if (!useAudioResponse || !apiKey) return;
-        try {
-          const payload = {
-            contents: [{ parts: [{ text: `Say in a ${PERSONALITIES.find(p => p.id === selectedPersonality)?.label} and ${MOODS.find(m => m.id === selectedMood)?.label} tone: ${text}` }] }],
-            generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: activeChar.voiceName } } } },
-            model: "gemini-2.5-flash-preview-tts"
-          };
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-          });
-          const result = await response.json();
-          const audioData = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-          if (audioData) {
-            const audioBlob = pcmToWav(audioData, 24000);
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            audio.play();
-          }
-        } catch (error) { console.error("TTS Error:", error); }
-      };
 
       const handlePrev = () => setSelectedIndex((prev) => (prev === 0 ? CHARACTERS.length - 1 : prev - 1));
       const handleNext = () => setSelectedIndex((prev) => (prev === CHARACTERS.length - 1 ? 0 : prev + 1));
@@ -296,17 +250,15 @@
         `;
 
         try {
-          // 替換為對外公開支援的正式版模型：gemini-1.5-flash
+          // 將模型改為正式對外公開的 gemini-1.5-flash，解決連線異常問題
           const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: historyContents, systemInstruction: { parts: [{ text: systemPrompt }] } })
           });
           const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "抱歉，我現在有點心不在焉。";
           setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: botReply }] }));
-          playTTS(botReply);
         } catch (error) {
-          // 若還有異常，這次會直接顯示具體出錯原因
-          setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: `連線異常：${error.message}` }] }));
+          setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: "連線異常，請檢查金鑰或稍後再試！" }] }));
         } finally { setIsTyping(false); }
       };
 
@@ -319,13 +271,9 @@
                 <span className="hidden md:inline">返回探探里山首頁</span>
               </a>
               <h1 className="text-lg sm:text-xl font-bold text-slate-800 tracking-wide hidden sm:flex items-center gap-2">
-                <Sparkles className="text-amber-500" size={20} /> 探探里山 3D 公仔輔助語音室
+                <Sparkles className="text-amber-500" size={20} /> 探探里山 3D 公仔輔助文字室
               </h1>
             </div>
-            <button onClick={() => setUseAudioResponse(!useAudioResponse)} className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all text-xs font-bold shrink-0 ${useAudioResponse ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'}`}>
-              {useAudioResponse ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              <span className="hidden sm:inline">{useAudioResponse ? '語音開啟' : '語音關閉'}</span>
-            </button>
           </header>
 
           <div className="bg-white border-y border-slate-100 shadow-sm z-10 px-4 py-3 flex flex-col gap-3">
@@ -411,17 +359,14 @@
                 {isTyping && (
                   <div className="flex justify-start items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-lg shadow-sm border border-slate-100 shrink-0">{activeChar.emoji}</div>
-                    <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">AI 與語音引擎生成中...</div>
+                    <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">AI 正在思考中...</div>
                   </div>
                 )}
               </div>
               <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-2">
                 <div className="flex gap-2">
-                  <button onClick={toggleListening} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md shrink-0 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200'}`}>
-                    {isListening ? <Mic size={20} /> : <MicOff size={20} />}
-                  </button>
                   <form onSubmit={handleSend} className="flex-1 flex gap-2">
-                    <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping} placeholder={isListening ? "傾聽中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all" />
+                    <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping} placeholder={isTyping ? "思考中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all" />
                     <button type="submit" disabled={!inputText.trim() || isTyping} className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-all shadow-md shrink-0 ${inputText.trim() && !isTyping ? activeChar.color : 'bg-slate-200 text-slate-400'}`}><Send size={20} /></button>
                   </form>
                 </div>
