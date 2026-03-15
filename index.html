@@ -71,7 +71,7 @@
       { id: 'anxious', label: '急躁焦慮', emoji: '🏃' }
     ];
 
-    // ✅ 您的專屬金鑰
+    // ✅ 您提供的專屬金鑰
     const apiKey = "AIzaSyB6snoI7ggEUN62MVi6wC8BAmHL1wlDDFQ"; 
 
     // --- 輔助函式區 ---
@@ -81,7 +81,6 @@
         try {
           const res = await fetch(url, options);
           if (!res.ok) {
-            // 解析並抓取 Google 伺服器回傳的真實錯誤訊息
             const errData = await res.json().catch(() => ({}));
             throw new Error(errData.error?.message || `HTTP error! status: ${res.status}`);
           }
@@ -219,7 +218,7 @@
         else { setIsListening(true); recognitionRef.current.start(); }
       };
 
-      // ✅ 採用瀏覽器內建原生語音引擎，穩定發音不報錯
+      // 原生穩定語音模組
       const playTTS = (text) => {
         if (!useAudioResponse) return;
         try {
@@ -239,7 +238,7 @@
         if (!inputText.trim() || isTyping) return;
         
         if (!apiKey) {
-            alert("請先在程式碼中的 apiKey 變數填入您的 Google API 金鑰！");
+            alert("請確認已填入 API 金鑰！");
             return;
         }
 
@@ -251,12 +250,10 @@
         setInputText('');
         setIsTyping(true);
 
-        // ✅ 智慧清理對話紀錄，防止格式錯誤導致 API 拒絕
         const rawHistory = newMsgs[currentActiveId].filter(msg => msg.text !== activeChar.greeting && !msg.text.includes("連線異常"));
         const historyContents = [];
         for (const msg of rawHistory) {
           const role = msg.sender === 'user' ? 'user' : 'model';
-          // 合併連續相同角色的訊息，符合 API 規範
           if (historyContents.length > 0 && historyContents[historyContents.length - 1].role === role) {
             historyContents[historyContents.length - 1].parts[0].text += "\n" + msg.text;
           } else {
@@ -280,8 +277,8 @@
         `;
 
         try {
-          // ✅ 使用正式對外公開的最新模型 (gemini-1.5-flash-latest)
-          const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`, {
+          // ✅ 正確且穩定的模型端點：gemini-1.5-flash
+          const data = await fetchWithRetry(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ contents: historyContents, systemInstruction: { parts: [{ text: systemPrompt }] } })
           });
