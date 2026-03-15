@@ -204,7 +204,8 @@
       const [selectedMood, setSelectedMood] = useState(MOODS[0].id);
       
       const [isListening, setIsListening] = useState(false);
-      const [useAudioResponse, setUseAudioResponse] = useState(true);
+      // ✅ 更改為三段式狀態：'off' (靜音), 'standard' (一般穩定), 'human' (人聲不穩定)
+      const [audioMode, setAudioMode] = useState('standard'); 
       const recognitionRef = useRef(null);
       const modelRef = useRef(null); // 用於儲存自動探索到的模型名稱
 
@@ -237,48 +238,60 @@
         else { setIsListening(true); recognitionRef.current.start(); }
       };
 
-      // ✅ 智慧雙引擎語音模組：優先使用高擬真人類音頻，若失敗則無縫退回原生穩定發音
-      const playTTS = async (text) => {
-        if (!useAudioResponse) return;
+      // ✅ 獨立出原生備援語音函式 (一般穩定版)
+      const playStandardTTS = (text) => {
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-TW';
+        utterance.rate = 1.05;
+        utterance.pitch = 1.1;
         
-        try {
-          // 嘗試呼叫高擬真人類語音 API
-          const payload = {
-            contents: [{ parts: [{ text: `Say in a ${PERSONALITIES.find(p => p.id === selectedPersonality)?.label} and ${MOODS.find(m => m.id === selectedMood)?.label} tone: ${text}` }] }],
-            generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: activeChar.voiceName } } } },
-            model: "gemini-2.5-flash-preview-tts"
-          };
-          
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
-            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-          });
-          
-          if (!response.ok) throw new Error("API TTS Unavailable");
-          
-          const result = await response.json();
-          const audioData = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-          
-          if (audioData) {
-            const audioBlob = pcmToWav(audioData, 24000);
-            const audioUrl = URL.createObjectURL(audioBlob);
-            const audio = new Audio(audioUrl);
-            audio.play();
-            return; // 成功播放人類音頻，結束函式
+        const voices = window.speechSynthesis.getVoices();
+        const twVoice = voices.find(v => v.lang.includes('zh-TW') && (v.name.includes('Google') || v.name.includes('Microsoft')));
+        if (twVoice) utterance.voice = twVoice;
+        
+        window.speechSynthesis.speak(utterance);
+      };
+
+      // ✅ 根據使用者選擇的模式播放語音
+      const playTTS = async (text) => {
+        if (audioMode === 'off') return;
+        
+        // 若選擇一般模式，直接使用瀏覽器原生語音
+        if (audioMode === 'standard') {
+          playStandardTTS(text);
+          return;
+        }
+        
+        // 若選擇人聲模式，則呼叫 API
+        if (audioMode === 'human') {
+          try {
+            const payload = {
+              contents: [{ parts: [{ text: `Say in a ${PERSONALITIES.find(p => p.id === selectedPersonality)?.label} and ${MOODS.find(m => m.id === selectedMood)?.label} tone: ${text}` }] }],
+              generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: activeChar.voiceName } } } },
+              model: "gemini-2.5-flash-preview-tts"
+            };
+            
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
+              method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+            });
+            
+            if (!response.ok) throw new Error("API TTS Unavailable");
+            
+            const result = await response.json();
+            const audioData = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+            
+            if (audioData) {
+              const audioBlob = pcmToWav(audioData, 24000);
+              const audioUrl = URL.createObjectURL(audioBlob);
+              const audio = new Audio(audioUrl);
+              audio.play();
+              return; 
+            }
+          } catch (error) {
+            console.warn("人類音頻引擎暫不可用，切換至原生備援語音", error);
+            // API 失敗時，依然能無縫退回一般聲音
+            playStandardTTS(text);
           }
-        } catch (error) {
-          console.warn("人類音頻引擎暫不可用，切換至原生備援語音", error);
-          // 若 API 不支援或失敗，無縫切換至瀏覽器原生語音 (備援機制)
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = 'zh-TW';
-          utterance.rate = 1.05;
-          utterance.pitch = 1.1;
-          
-          // 嘗試尋找內建較自然的語音包 (如 Google 或 Microsoft 國語)
-          const voices = window.speechSynthesis.getVoices();
-          const twVoice = voices.find(v => v.lang.includes('zh-TW') && (v.name.includes('Google') || v.name.includes('Microsoft')));
-          if (twVoice) utterance.voice = twVoice;
-          
-          window.speechSynthesis.speak(utterance);
         }
       };
 
@@ -376,10 +389,19 @@
                 <Sparkles className="text-amber-500" size={20} /> 探探里山 3D 公仔輔助語音室
               </h1>
             </div>
-            <button onClick={() => setUseAudioResponse(!useAudioResponse)} className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all text-xs font-bold shrink-0 ${useAudioResponse ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'}`}>
-              {useAudioResponse ? <Volume2 size={16} /> : <VolumeX size={16} />}
-              <span className="hidden sm:inline">{useAudioResponse ? '語音開啟' : '語音關閉'}</span>
-            </button>
+            
+            {/* ✅ 改版：三段式音頻控制按鈕 (靜音 / 一般穩定 / 人聲不穩定) */}
+            <div className="flex bg-slate-200/60 p-1 rounded-full shrink-0 border border-slate-200 shadow-inner overflow-x-auto no-scrollbar max-w-[55vw] sm:max-w-none">
+              <button onClick={() => setAudioMode('off')} className={`px-2 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${audioMode === 'off' ? 'bg-white text-slate-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                <VolumeX size={14} /> 靜音
+              </button>
+              <button onClick={() => setAudioMode('standard')} className={`px-2 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${audioMode === 'standard' ? 'bg-blue-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                <Volume2 size={14} /> 一般<span className="hidden sm:inline">(穩定)</span>
+              </button>
+              <button onClick={() => setAudioMode('human')} className={`px-2 sm:px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 whitespace-nowrap ${audioMode === 'human' ? 'bg-amber-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+                <Sparkles size={14} /> 人聲<span className="hidden sm:inline">(不穩定)</span>
+              </button>
+            </div>
           </header>
 
           <div className="bg-white border-y border-slate-100 shadow-sm z-10 px-4 py-3 flex flex-col gap-3">
