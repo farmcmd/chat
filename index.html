@@ -1,0 +1,591 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, ChevronLeft, ChevronRight, Info, Leaf, MapPin, Recycle, Cpu, Sparkles, MessageSquare, Zap, Heart, Smile, Mic, MicOff, Volume2, VolumeX, Home } from 'lucide-react';
+
+const CHARACTERS = [
+  {
+    id: 0,
+    name: '環境永續博士',
+    role: '全球氣候與永續發展專家',
+    emoji: '👨‍🔬',
+    skinColor: 'bg-[#ffdfc4]',
+    outfitColor: 'bg-slate-50', 
+    sleeveColor: 'bg-slate-50',
+    legColor: 'bg-slate-800',
+    shoeColor: 'bg-slate-900',
+    color: 'bg-emerald-500',
+    baseColor: 'bg-emerald-600',
+    lightColor: 'bg-emerald-100',
+    greeting: '你好！我是環境永續博士。想了解 ESG 或全球氣候變遷的趨勢嗎？',
+    voiceName: 'Charon' 
+  },
+  {
+    id: 1,
+    name: '聊天盟娃',
+    role: '你的日常傾聽好夥伴',
+    emoji: '🧸',
+    skinColor: 'bg-[#ffdfc4]',
+    outfitColor: 'bg-blue-400', 
+    sleeveColor: 'bg-blue-400',
+    legColor: 'bg-sky-500',
+    shoeColor: 'bg-white',
+    color: 'bg-blue-400',
+    baseColor: 'bg-blue-500',
+    lightColor: 'bg-blue-100',
+    greeting: '嘿！我是聊天盟娃～今天過得好嗎？不管什麼煩惱都可以跟我說喔！',
+    voiceName: 'Leda' 
+  },
+  {
+    id: 2,
+    name: '生態小博士',
+    role: '動植物與自然生態達人',
+    emoji: '🤠',
+    skinColor: 'bg-[#ffdfc4]',
+    outfitColor: 'bg-[#c19a6b]', 
+    sleeveColor: 'bg-green-200',
+    legColor: 'bg-[#8b5a2b]',
+    shoeColor: 'bg-[#5c3a21]',
+    color: 'bg-green-500',
+    baseColor: 'bg-green-600',
+    lightColor: 'bg-green-100',
+    greeting: '嗨！我是生態小博士。大自然充滿奧秘，你想認識哪種稀有動植物呢？',
+    voiceName: 'Puck' 
+  },
+  {
+    id: 3,
+    name: '永續旅遊專家',
+    role: '低碳旅行與在地文化達人',
+    emoji: '🚂',
+    skinColor: 'bg-[#ffdfc4]',
+    outfitColor: 'bg-indigo-400', 
+    sleeveColor: 'bg-indigo-400',
+    legColor: 'bg-slate-600',
+    shoeColor: 'bg-slate-800',
+    color: 'bg-indigo-500',
+    baseColor: 'bg-indigo-600',
+    lightColor: 'bg-indigo-100',
+    greeting: '出發囉！我是永續旅遊專家。想知道如何玩得盡興、深入在地又能降低碳足跡嗎？',
+    voiceName: 'Zephyr' 
+  },
+  {
+    id: 4,
+    name: '循環小精靈',
+    role: '資源回收與零廢棄導師',
+    emoji: '🧚',
+    skinColor: 'bg-teal-100', 
+    outfitColor: 'bg-teal-500', 
+    sleeveColor: 'bg-teal-500',
+    legColor: 'bg-teal-700',
+    shoeColor: 'bg-teal-900',
+    color: 'bg-teal-500',
+    baseColor: 'bg-teal-600',
+    lightColor: 'bg-teal-100',
+    greeting: '轉轉轉！我是循環小精靈。垃圾其實都是放錯位置的資源，我們來做分類吧！',
+    voiceName: 'Aoede' 
+  }
+];
+
+const PERSONALITIES = [
+  { id: 'enthusiastic', label: '熱情積極', emoji: '🔥' },
+  { id: 'rational', label: '冷靜理性', emoji: '⚖️' },
+  { id: 'humorous', label: '幽默風趣', emoji: '🤣' },
+  { id: 'gentle', label: '溫柔體貼', emoji: '🌸' },
+  { id: 'strict', label: '嚴謹專業', emoji: '📏' }
+];
+
+const MOODS = [
+  { id: 'happy', label: '超級開心', emoji: '✨' },
+  { id: 'tired', label: '有點疲憊', emoji: '💤' },
+  { id: 'fighting', label: '充滿鬥志', emoji: '✊' },
+  { id: 'deep', label: '陷入沉思', emoji: '🤔' },
+  { id: 'anxious', label: '急躁焦慮', emoji: '🏃' }
+];
+
+const apiKey = ""; 
+
+const pcmToWav = (base64Data, sampleRate = 24000) => {
+  const byteCharacters = atob(base64Data);
+  const byteNumbers = new Array(byteCharacters.length);
+  for (let i = 0; i < byteCharacters.length; i++) {
+    byteNumbers[i] = byteCharacters.charCodeAt(i);
+  }
+  const byteArray = new Uint8Array(byteNumbers);
+  const buffer = new ArrayBuffer(44 + byteArray.length);
+  const view = new DataView(buffer);
+  const writeString = (offset, string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+  writeString(0, 'RIFF');
+  view.setUint32(4, 32 + byteArray.length, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); 
+  view.setUint16(22, 1, true); 
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeString(36, 'data');
+  view.setUint32(40, byteArray.length, true);
+  const pcmData = new Int16Array(buffer, 44);
+  const rawPcm = new Int16Array(byteArray.buffer);
+  pcmData.set(rawPcm);
+  return new Blob([buffer], { type: 'audio/wav' });
+};
+
+const fetchWithRetry = async (url, options, retries = 5) => {
+  const delays = [1000, 2000, 4000, 8000, 16000];
+  for (let i = 0; i < retries; i++) {
+    try {
+      const res = await fetch(url, options);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      return await res.json();
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      await new Promise(resolve => setTimeout(resolve, delays[i]));
+    }
+  }
+};
+
+const FullBodyDoll = ({ char, isActive }) => {
+  return (
+    <div className={`relative flex flex-col items-center transition-all duration-500 z-10 w-full
+      ${isActive ? 'scale-110 translate-y-0 drop-shadow-2xl' : 'scale-90 translate-y-6 drop-shadow-md opacity-70'}
+      group-hover:-translate-y-2`}
+    >
+      <div className={`w-24 h-[5.5rem] rounded-[2.5rem] ${char.skinColor} relative z-30 shadow-[inset_-5px_-8px_12px_rgba(0,0,0,0.15)] flex flex-col items-center justify-center transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-2`}>
+        {char.id === 3 ? (
+          <div className="absolute top-9 flex gap-1 items-center z-30">
+            <div className="w-6 h-5 bg-slate-800 rounded-b-lg rounded-t-sm shadow-sm"></div>
+            <div className="w-2 h-1 bg-slate-800"></div>
+            <div className="w-6 h-5 bg-slate-800 rounded-b-lg rounded-t-sm shadow-sm"></div>
+          </div>
+        ) : (
+          <div className="absolute top-10 flex gap-5 z-20">
+            <div className="w-2 h-3.5 bg-slate-800 rounded-full"></div>
+            <div className="w-2 h-3.5 bg-slate-800 rounded-full"></div>
+          </div>
+        )}
+        {char.id === 0 && (
+          <div className="absolute top-8 flex gap-1 items-center z-30">
+            <div className="w-7 h-7 border-[3px] border-slate-700 rounded-full bg-white/20"></div>
+            <div className="w-1.5 h-[3px] bg-slate-700"></div>
+            <div className="w-7 h-7 border-[3px] border-slate-700 rounded-full bg-white/20"></div>
+          </div>
+        )}
+        {(char.id === 1 || char.id === 4) && (
+          <div className="absolute top-12 flex gap-8 z-10">
+            <div className="w-3 h-1.5 bg-pink-400/60 rounded-full blur-[1px]"></div>
+            <div className="w-3 h-1.5 bg-pink-400/60 rounded-full blur-[1px]"></div>
+          </div>
+        )}
+        {char.id === 1 && (
+          <>
+            <div className="absolute -top-1 w-[6.5rem] h-14 border-4 border-b-0 border-slate-800 rounded-t-[3rem] z-10"></div>
+            <div className="absolute top-6 -left-1.5 w-3 h-6 bg-slate-800 rounded-full z-40 shadow-sm"></div>
+            <div className="absolute top-6 -right-1.5 w-3 h-6 bg-slate-800 rounded-full z-40 shadow-sm"></div>
+          </>
+        )}
+        {char.id === 2 && (
+          <div className="absolute -top-3 flex flex-col items-center z-40">
+            <div className="w-14 h-7 bg-[#d2b48c] rounded-t-[1.5rem] shadow-[inset_-3px_-2px_6px_rgba(0,0,0,0.15)]"></div>
+            <div className="w-[7.5rem] h-2.5 bg-[#b08d5d] rounded-full -mt-1 shadow-sm"></div>
+          </div>
+        )}
+        {char.id === 4 && (
+          <div className="absolute -top-4 flex items-end z-40">
+            <div className="w-1 h-5 bg-green-500 rounded-full -mr-1"></div>
+            <div className="w-4 h-4 bg-green-400 rounded-tl-full rounded-br-full -rotate-45 mb-2 -ml-1 shadow-sm"></div>
+            <div className="w-4 h-4 bg-green-500 rounded-tr-full rounded-bl-full rotate-45 mb-1 -ml-3 shadow-sm"></div>
+          </div>
+        )}
+      </div>
+      <div className={`w-4 h-3 rounded-full ${char.skinColor} -mt-1 mb-[-0.5rem] z-20 shadow-inner brightness-90`}></div>
+      <div className="relative z-20 flex flex-col items-center">
+        <div className={`w-14 h-14 rounded-[1.2rem] ${char.outfitColor} relative flex justify-center overflow-hidden shadow-[inset_-4px_-6px_10px_rgba(0,0,0,0.2)] border border-black/5 z-20`}>
+          {char.id === 0 && (
+            <>
+              <div className="absolute top-0 w-4 h-full bg-sky-100"></div> 
+              <div className="absolute top-0 w-1.5 h-6 bg-emerald-500 rounded-b-sm z-10 shadow-sm"></div> 
+              <div className="absolute top-0 left-0 w-5 h-full bg-slate-50 border-r border-slate-200/80 rounded-l-[1.2rem] shadow-sm"></div>
+              <div className="absolute top-0 right-0 w-5 h-full bg-slate-50 border-l border-slate-200/80 rounded-r-[1.2rem] shadow-sm"></div>
+              <div className="absolute top-5 right-1.5 w-2.5 h-3 border-b-2 border-l-2 border-slate-300 rounded-bl-sm"></div>
+            </>
+          )}
+          {char.id === 1 && (
+            <>
+              <div className="absolute top-1 flex gap-2 z-10">
+                <div className="w-0.5 h-4 bg-blue-100 rounded-full shadow-sm"></div>
+                <div className="w-0.5 h-4 bg-blue-100 rounded-full shadow-sm"></div>
+              </div>
+              <div className="absolute bottom-1 w-8 h-4 bg-blue-500/40 rounded-t-lg border border-blue-400/50 shadow-inner"></div>
+            </>
+          )}
+          {char.id === 2 && (
+            <>
+              <div className="absolute top-0 w-4 h-full bg-green-100"></div>
+              <div className="absolute top-0 left-0 w-5 h-full bg-[#c19a6b] border-r border-black/10 shadow-sm rounded-l-[1.2rem]"></div>
+              <div className="absolute top-0 right-0 w-5 h-full bg-[#c19a6b] border-l border-black/10 shadow-sm rounded-r-[1.2rem]"></div>
+              <div className="absolute top-4 flex justify-center w-full z-10"><Leaf size={12} className="text-green-800 drop-shadow-sm" /></div>
+            </>
+          )}
+          {char.id === 3 && (
+            <div className="absolute top-2.5 flex justify-center w-full z-10">
+              <MapPin size={16} className="text-indigo-100 drop-shadow-sm" />
+            </div>
+          )}
+          {char.id === 4 && (
+            <div className="absolute top-2.5 flex justify-center w-full z-10">
+              <Recycle size={16} className="text-teal-100 drop-shadow-sm" />
+            </div>
+          )}
+        </div>
+        <div className={`absolute top-2 -left-3 w-3.5 h-10 rounded-full ${char.sleeveColor} origin-top rotate-[25deg] shadow-[inset_-2px_-3px_4px_rgba(0,0,0,0.2)] z-10 group-hover:rotate-[40deg] transition-transform duration-300 flex flex-col items-center justify-end pb-0.5`}>
+          <div className={`w-2.5 h-2.5 rounded-full ${char.skinColor} shadow-inner`}></div>
+        </div>
+        <div className={`absolute top-2 -right-3 w-3.5 h-10 rounded-full ${char.sleeveColor} origin-top -rotate-[25deg] shadow-[inset_2px_-3px_4px_rgba(0,0,0,0.2)] z-10 group-hover:-rotate-[40deg] transition-transform duration-300 flex flex-col items-center justify-end pb-0.5`}>
+          <div className={`w-2.5 h-2.5 rounded-full ${char.skinColor} shadow-inner`}></div>
+        </div>
+        <div className="flex gap-1.5 -mt-2 z-0">
+          <div className={`w-4 h-8 rounded-full ${char.legColor} shadow-[inset_-2px_-3px_4px_rgba(0,0,0,0.3)]`}></div>
+          <div className={`w-4 h-8 rounded-full ${char.legColor} shadow-[inset_2px_-3px_4px_rgba(0,0,0,0.3)]`}></div>
+        </div>
+        <div className="flex gap-0.5 -mt-2 z-10">
+          <div className={`w-5 h-3.5 rounded-full ${char.shoeColor} -ml-1 shadow-md`}></div>
+          <div className={`w-5 h-3.5 rounded-full ${char.shoeColor} ml-1 shadow-md`}></div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function App() {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [messages, setMessages] = useState({});
+  const [inputText, setInputText] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [selectedAi, setSelectedAi] = useState('gemini'); 
+  const [selectedPersonality, setSelectedPersonality] = useState(PERSONALITIES[0].id);
+  const [selectedMood, setSelectedMood] = useState(MOODS[0].id);
+  
+  const [isListening, setIsListening] = useState(false);
+  const [useAudioResponse, setUseAudioResponse] = useState(true);
+  const recognitionRef = useRef(null);
+
+  useEffect(() => {
+    const initialMessages = {};
+    CHARACTERS.forEach(char => {
+      initialMessages[char.id] = [{ sender: 'bot', text: char.greeting }];
+    });
+    setMessages(initialMessages);
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'zh-TW';
+      recognitionRef.current.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInputText(transcript);
+        setIsListening(false);
+      };
+      recognitionRef.current.onend = () => setIsListening(false);
+      recognitionRef.current.onerror = () => setIsListening(false);
+    }
+  }, []);
+
+  const activeChar = CHARACTERS[selectedIndex];
+
+  const toggleListening = () => {
+    if (!recognitionRef.current) return;
+    if (isListening) recognitionRef.current.stop();
+    else {
+      setIsListening(true);
+      recognitionRef.current.start();
+    }
+  };
+
+  const playTTS = async (text) => {
+    if (!useAudioResponse) return;
+    try {
+      const payload = {
+        contents: [{ parts: [{ text: `Say in a ${PERSONALITIES.find(p => p.id === selectedPersonality)?.label} and ${MOODS.find(m => m.id === selectedMood)?.label} tone: ${text}` }] }],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            voiceConfig: {
+              prebuiltVoiceConfig: { voiceName: activeChar.voiceName }
+            }
+          }
+        },
+        model: "gemini-2.5-flash-preview-tts"
+      };
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      const audioData = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (audioData) {
+        const audioBlob = pcmToWav(audioData, 24000);
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        audio.play();
+      }
+    } catch (error) {
+      console.error("TTS Error:", error);
+    }
+  };
+
+  const handlePrev = () => {
+    setSelectedIndex((prev) => (prev === 0 ? CHARACTERS.length - 1 : prev - 1));
+  };
+
+  const handleNext = () => {
+    setSelectedIndex((prev) => (prev === CHARACTERS.length - 1 ? 0 : prev + 1));
+  };
+
+  const handleSend = async (e) => {
+    if (e) e.preventDefault();
+    if (!inputText.trim() || isTyping) return;
+
+    const userText = inputText.trim();
+    const currentActiveId = activeChar.id;
+    const newMsgs = { ...messages };
+    newMsgs[currentActiveId] = [...newMsgs[currentActiveId], { sender: 'user', text: userText }];
+    setMessages(newMsgs);
+    setInputText('');
+    setIsTyping(true);
+
+    const historyContents = newMsgs[currentActiveId]
+      .filter(msg => msg.text !== activeChar.greeting)
+      .map(msg => ({
+        role: msg.sender === 'user' ? 'user' : 'model',
+        parts: [{ text: msg.text }]
+      }));
+
+    const personalityLabel = PERSONALITIES.find(p => p.id === selectedPersonality)?.label;
+    const moodLabel = MOODS.find(m => m.id === selectedMood)?.label;
+    let aiPersona = "";
+    if (selectedAi === 'gemini') aiPersona = "你是 Google 開發的 Gemini。回答風格：聰明、靈活且富有創造力。";
+    else if (selectedAi === 'chatgpt') aiPersona = "你現在模擬 OpenAI 開發的 ChatGPT。回答風格：結構化、專業且平穩。";
+    else if (selectedAi === 'grok') aiPersona = "你現在模擬 xAI 開發的 Grok。回答風格：帶點幽默、反叛與諷刺，非常機智。";
+
+    const systemPrompt = `
+      ${aiPersona} 
+      你現在扮演「${activeChar.name}」，你的專業領域是：「${activeChar.role}」。
+      【重要設定】你現在的個性是「${personalityLabel}」，心情是「${moodLabel}」。
+      請完全沉浸在這個角色中，用符合此身分、個性與心情的口吻與專業知識來回答使用者的問題。
+      請使用繁體中文，且回答請精簡（100字以內）。
+    `;
+
+    try {
+      const data = await fetchWithRetry(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: historyContents,
+            systemInstruction: { parts: [{ text: systemPrompt }] }
+          })
+        }
+      );
+      const botReply = data.candidates?.[0]?.content?.parts?.[0]?.text || "抱歉，我現在有點心不在焉。";
+      setMessages(prev => ({
+        ...prev,
+        [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: botReply }]
+      }));
+      playTTS(botReply);
+    } catch (error) {
+      setMessages(prev => ({
+        ...prev,
+        [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: "連線異常，請稍後再試！" }]
+      }));
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans overflow-hidden">
+      <header className="bg-white shadow-sm py-3 px-4 sm:px-6 z-20 relative flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 shrink-0">
+          <a 
+            href="https://farmcmd.github.io/ESGT/" 
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:scale-105 border border-emerald-200 shadow-sm"
+          >
+            <Home size={16} />
+            <span className="hidden md:inline">返回探探里山首頁</span>
+          </a>
+          <h1 className="text-lg sm:text-xl font-bold text-slate-800 tracking-wide hidden sm:flex items-center gap-2">
+            <Sparkles className="text-amber-500" size={20} /> 探探里山 3D 公仔輔助語音室
+          </h1>
+        </div>
+        <button 
+          onClick={() => setUseAudioResponse(!useAudioResponse)}
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all text-xs font-bold shrink-0 ${useAudioResponse ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-200 text-slate-500'}`}
+        >
+          {useAudioResponse ? <Volume2 size={16} /> : <VolumeX size={16} />}
+          <span className="hidden sm:inline">{useAudioResponse ? '語音開啟' : '語音關閉'}</span>
+        </button>
+      </header>
+
+      {/* 控制台區域 */}
+      <div className="bg-white border-y border-slate-100 shadow-sm z-10 px-4 py-3 flex flex-col gap-3">
+        {/* AI 模型 */}
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-tighter shrink-0 border-r pr-3">
+            <Cpu size={14} /> AI 核心
+          </div>
+          <div className="flex gap-2">
+            {['gemini', 'chatgpt', 'grok'].map(ai => (
+              <button 
+                key={ai}
+                onClick={() => setSelectedAi(ai)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all border ${selectedAi === ai ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-400 border-slate-100'}`}
+              >
+                {ai.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 個性選擇 */}
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-tighter shrink-0 border-r pr-3">
+            <Heart size={14} /> 個性
+          </div>
+          <div className="flex gap-2">
+            {PERSONALITIES.map(p => (
+              <button 
+                key={p.id}
+                onClick={() => setSelectedPersonality(p.id)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all border flex items-center gap-1.5 whitespace-nowrap ${selectedPersonality === p.id ? 'bg-indigo-500 text-white border-indigo-500 shadow-sm' : 'bg-white text-slate-500 border-slate-100 hover:border-indigo-200'}`}
+              >
+                <span>{p.emoji}</span>
+                <span>{p.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 心情選擇 */}
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-400 uppercase tracking-tighter shrink-0 border-r pr-3">
+            <Smile size={14} /> 心情
+          </div>
+          <div className="flex gap-2">
+            {MOODS.map(m => (
+              <button 
+                key={m.id}
+                onClick={() => setSelectedMood(m.id)}
+                className={`px-3 py-1 rounded-full text-[11px] font-bold transition-all border flex items-center gap-1.5 whitespace-nowrap ${selectedMood === m.id ? 'bg-rose-500 text-white border-rose-500 shadow-sm' : 'bg-white text-slate-500 border-slate-100 hover:border-rose-200'}`}
+              >
+                <span>{m.emoji}</span>
+                <span>{m.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <main className="flex-1 flex flex-col md:flex-row max-w-6xl w-full mx-auto p-4 gap-4 overflow-hidden">
+        {/* 左側：旋轉展示台 */}
+        <section className="w-full md:w-5/12 flex flex-col items-center justify-center bg-white rounded-3xl shadow-xl border border-slate-100 relative min-h-[380px]">
+          <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
+          <div className="relative w-full h-80 flex items-center justify-center z-10" style={{ perspective: '1400px' }}>
+            <div 
+              className="relative w-64 h-80 transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)]"
+              style={{ transformStyle: 'preserve-3d', transform: `rotateY(${-selectedIndex * 72}deg)` }}
+            >
+              {CHARACTERS.map((char, index) => {
+                const isActive = index === selectedIndex;
+                return (
+                  <div
+                    key={char.id}
+                    className="absolute inset-0 flex flex-col items-center justify-end p-4 cursor-pointer group"
+                    style={{ transform: `rotateY(${index * 72}deg) translateZ(240px)`, backfaceVisibility: 'hidden' }}
+                    onClick={() => setSelectedIndex(index)}
+                  >
+                    <div className="relative flex flex-col items-center justify-end w-full mb-8">
+                      <FullBodyDoll char={char} isActive={isActive} />
+                      <div className={`absolute -bottom-4 w-36 h-10 rounded-[50%] ${char.color} shadow-[0_12px_15px_rgba(0,0,0,0.3)] z-0 transition-all duration-700 ${isActive ? 'scale-100 opacity-100' : 'scale-75 opacity-40'}`}>
+                        <div className="absolute inset-0 rounded-[50%] bg-white opacity-20 transform -translate-y-1"></div>
+                        <div className={`absolute inset-0 rounded-[50%] ${char.baseColor} transform translate-y-2 -z-10`}></div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="absolute bottom-6 w-[85%] bg-white/90 backdrop-blur shadow-sm border border-slate-100 p-4 rounded-2xl text-center">
+            <h3 className="text-lg font-bold text-slate-800 leading-tight">{activeChar.name}</h3>
+            <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">{activeChar.role}</p>
+          </div>
+          <button onClick={handlePrev} className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-md border border-slate-100 hover:scale-110 transition-transform active:scale-95"><ChevronLeft size={20} className="text-slate-400" /></button>
+          <button onClick={handleNext} className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white rounded-full shadow-md border border-slate-100 hover:scale-110 transition-transform active:scale-95"><ChevronRight size={20} className="text-slate-400" /></button>
+        </section>
+
+        {/* 右側：聊天介面 */}
+        <section className="w-full md:w-7/12 flex flex-col rounded-3xl shadow-xl border border-slate-100 bg-white overflow-hidden">
+          <div className={`p-4 flex items-center gap-3 ${activeChar.color} text-white`}>
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl shadow-inner shrink-0">{activeChar.emoji}</div>
+            <div className="flex-1 overflow-hidden">
+              <div className="flex items-center gap-2">
+                <span className="font-bold truncate">{activeChar.name}</span>
+                <span className="text-[9px] bg-black/20 px-2 py-0.5 rounded-full backdrop-blur-sm uppercase font-black">{selectedAi}</span>
+              </div>
+              <div className="flex gap-2 mt-1">
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap font-bold">
+                  {PERSONALITIES.find(p => p.id === selectedPersonality)?.label}
+                </span>
+                <span className="text-[9px] bg-white/20 px-1.5 py-0.5 rounded flex items-center gap-1 whitespace-nowrap font-bold">
+                  {MOODS.find(m => m.id === selectedMood)?.label}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className={`flex-1 p-4 overflow-y-auto flex flex-col gap-4 ${activeChar.lightColor} bg-opacity-20`}>
+            {messages[activeChar.id]?.map((msg, idx) => (
+              <div key={idx} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {msg.sender === 'bot' && <div className="w-8 h-8 mr-2 self-end mb-1 flex items-center justify-center bg-white rounded-full text-lg shadow-sm shrink-0 border border-slate-100">{activeChar.emoji}</div>}
+                <div className={`max-w-[85%] p-3 rounded-2xl text-sm shadow-sm leading-relaxed ${msg.sender === 'user' ? 'bg-slate-800 text-white rounded-br-sm' : 'bg-white border border-slate-100 text-slate-800 rounded-bl-sm'}`}>
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            {isTyping && (
+              <div className="flex justify-start items-center gap-2">
+                <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-lg shadow-sm border border-slate-100 shrink-0">{activeChar.emoji}</div>
+                <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">
+                  AI 與語音引擎生成中...
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-2">
+            <div className="flex gap-2">
+              <button onClick={toggleListening} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md shrink-0 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200'}`}>
+                {isListening ? <Mic size={20} /> : <MicOff size={20} />}
+              </button>
+              <form onSubmit={handleSend} className="flex-1 flex gap-2">
+                <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping} placeholder={isListening ? "傾聽中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all" />
+                <button type="submit" disabled={!inputText.trim() || isTyping} className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-all shadow-md shrink-0 ${inputText.trim() && !isTyping ? activeChar.color : 'bg-slate-200 text-slate-400'}`}>
+                  <Send size={20} />
+                </button>
+              </form>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}
