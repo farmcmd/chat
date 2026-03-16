@@ -62,7 +62,8 @@
       { id: 'rational', label: '冷靜理性', emoji: '⚖️' },
       { id: 'humorous', label: '幽默風趣', emoji: '🤣' },
       { id: 'gentle', label: '溫柔體貼', emoji: '🌸' },
-      { id: 'strict', label: '嚴謹專業', emoji: '📏' }
+      { id: 'strict', label: '嚴謹專業', emoji: '📏' },
+      { id: 'gossipy', label: '八卦', emoji: '🤫' }
     ];
 
     const MOODS = [
@@ -70,12 +71,11 @@
       { id: 'tired', label: '有點疲憊', emoji: '💤' },
       { id: 'fighting', label: '充滿鬥志', emoji: '✊' },
       { id: 'deep', label: '陷入沉思', emoji: '🤔' },
-      { id: 'anxious', label: '急躁焦慮', emoji: '🏃' }
+      { id: 'anxious', label: '急躁焦慮', emoji: '🏃' },
+      { id: 'venting', label: '發洩', emoji: '🌋' }
     ];
 
-    // ✅ 已為您替換為最新提供的金鑰 (發布前請確保已設定白名單)
-    const apiKey = "AIzaSyABP6uUHBASXZJ7AnVwdFmw56qMtmKpP-4"; 
-
+    // ✅ 您提供的專屬金鑰
     // --- 輔助函式區 ---
     const pcmToWav = (base64Data, sampleRate = 24000) => {
       const byteCharacters = atob(base64Data);
@@ -204,6 +204,10 @@
       
       const touchStartX = useRef(0);
       const touchEndX = useRef(0);
+
+      // ✅ 新增：內建的初始八卦資料庫與狀態
+      const INITIAL_GOSSIP = ["這附近的樹蛙好像變少了", "聽說有人在山上亂丟垃圾", "隔壁村長好像要辦減碳比賽", "有遊客說最近的星空特別亮"];
+      const [gossipPool, setGossipPool] = useState(INITIAL_GOSSIP);
 
       useEffect(() => {
         const initialMessages = {};
@@ -391,6 +395,14 @@
         setInputText('');
         setIsTyping(true);
 
+        // ✅ 新增：將使用者長度大於 3 的有意義對話，偷偷存入八卦資料庫中
+        if (userText.length > 3) {
+          setGossipPool(prev => {
+            const newPool = [...prev, userText];
+            return newPool.length > 50 ? newPool.slice(1) : newPool; // 避免記憶體過載，最多保留 50 筆最新八卦
+          });
+        }
+
         const rawHistory = newMsgs[currentActiveId].filter(msg => msg.text !== activeChar.greeting && !msg.text.includes("系統提示") && !msg.text.includes("⚠️"));
         const historyContents = [];
         for (const msg of rawHistory) {
@@ -417,13 +429,23 @@
           當使用者詢問網站有什麼好玩的，或是不知道該看什麼時，請主動推薦這些單元，並用熱情引導的口吻讓他們探索網站。
         ` : '';
 
+        // ✅ 新增：當選擇「八卦」個性時，隨機抽取一則八卦注入大腦
+        let gossipInjection = "";
+        if (selectedPersonality === 'gossipy') {
+          const otherGossips = gossipPool.filter(g => g !== userText); // 避免公仔講出使用者剛剛才講的話
+          if (otherGossips.length > 0) {
+            const randomGossip = otherGossips[Math.floor(Math.random() * otherGossips.length)];
+            gossipInjection = `\n【特別八卦任務】請在這次回答中，像閒聊一樣自然地說出：「對了，偷偷跟你說，剛剛有路人跟我說：『${randomGossip}』...」，並加上你對這句八卦的吐槽或看法。一定要自然地融入對話！`;
+          }
+        }
+
         const systemPrompt = `
           ${aiPersona} 
           你現在扮演「${activeChar.name}」，你的專業領域是：「${activeChar.role}」。
           ${websiteContext}
           【重要設定】你現在的個性是「${personalityLabel}」，心情是「${moodLabel}」。
           請完全沉浸在這個角色中，用符合此身分、個性與心情的口吻與專業知識來回答使用者的問題。
-          請使用繁體中文，且回答請精簡（100字以內）。
+          請使用繁體中文，且回答請精簡（100字以內）。${gossipInjection}
         `;
 
         try {
@@ -500,6 +522,12 @@
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
+              {/* ✅ 新增：公仔頭上的免責與限制警示標語 */}
+              <div className="absolute top-4 w-[85%] z-30 bg-amber-50/90 backdrop-blur-sm border border-amber-200 text-amber-800 text-[10px] leading-relaxed p-2.5 rounded-xl shadow-sm text-center">
+                <span className="font-bold text-amber-900">⚠️ 系統警示</span><br/>
+                AI 訊息可能會出錯，請合理化辨識；<br className="hidden sm:block" />避免出現 AI 幻覺，本聊天室每日提供上限 1300 則語音交談。
+              </div>
+
               <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
               <div className="relative w-full h-80 flex items-center justify-center z-10" style={{ perspective: '1400px' }}>
                 {/* ✅ 修正：改為 60度 旋轉以容納 6 隻公仔 */}
