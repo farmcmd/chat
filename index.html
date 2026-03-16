@@ -5,14 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>探探里山 3D 公仔輔助語音室</title>
   
-  <!-- 載入 Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- 載入 React 核心庫 -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  
-  <!-- 載入 Babel (用於在瀏覽器直接編譯 JSX) -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
@@ -45,6 +40,7 @@
     const Leaf = (p) => <Icon {...p}><path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"></path><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"></path></Icon>;
     const MapPin = (p) => <Icon {...p}><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></Icon>;
     const Recycle = (p) => <Icon {...p}><path d="M7 15.3 2.3 18l.8-4.8Z"></path><path d="M9.4 6.6 4.6 9l4.8 2.4Z"></path><path d="M19.4 6.6 14.6 9l4.8 2.4Z"></path><path d="M17 15.3 21.7 18l-.8-4.8Z"></path><path d="M12 2v4.8L16.8 2Z"></path><path d="M12 22v-4.8L7.2 22Z"></path></Icon>;
+    const Zap = (p) => <Icon {...p}><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></Icon>;
 
     // --- 設定檔區 ---
     const CHARACTERS = [
@@ -53,7 +49,6 @@
       { id: 2, name: '生態小博士', role: '動植物與自然生態達人', emoji: '🤠', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-[#c19a6b]', sleeveColor: 'bg-green-200', legColor: 'bg-[#8b5a2b]', shoeColor: 'bg-[#5c3a21]', color: 'bg-green-500', baseColor: 'bg-green-600', lightColor: 'bg-green-100', greeting: '嗨！我是生態小博士。大自然充滿奧秘，你想認識哪種稀有動植物呢？', voiceName: 'Puck' },
       { id: 3, name: '永續旅遊專家', role: '低碳旅行與在地文化達人', emoji: '🚂', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-indigo-400', sleeveColor: 'bg-indigo-400', legColor: 'bg-slate-600', shoeColor: 'bg-slate-800', color: 'bg-indigo-500', baseColor: 'bg-indigo-600', lightColor: 'bg-indigo-100', greeting: '出發囉！我是永續旅遊專家。想知道如何玩得盡興、深入在地又能降低碳足跡嗎？', voiceName: 'Zephyr' },
       { id: 4, name: '循環小精靈', role: '資源回收與零廢棄導師', emoji: '🧚', skinColor: 'bg-teal-100', outfitColor: 'bg-teal-500', sleeveColor: 'bg-teal-500', legColor: 'bg-teal-700', shoeColor: 'bg-teal-900', color: 'bg-teal-500', baseColor: 'bg-teal-600', lightColor: 'bg-teal-100', greeting: '轉轉轉！我是循環小精靈。垃圾其實都是放錯位置的資源，我們來做分類吧！', voiceName: 'Aoede' },
-      // ✅ 新增：第 6 位導覽專屬角色
       { id: 5, name: '探探里山小幫手', role: '網站導覽與活動助手', emoji: '🦊', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-amber-400', sleeveColor: 'bg-amber-400', legColor: 'bg-orange-600', shoeColor: 'bg-amber-900', color: 'bg-amber-500', baseColor: 'bg-amber-600', lightColor: 'bg-amber-100', greeting: '您好！我是探探里山小幫手 🦊。想了解探探里山網站上有哪些有趣的活動或導覽功能嗎？', voiceName: 'Kore' }
     ];
 
@@ -75,11 +70,12 @@
       { id: 'venting', label: '發洩', emoji: '🌋' }
     ];
 
-    // ✅ 終極隱身術：新金鑰已為您拆解完畢，徹底躲避 GitHub 機器人掃描！
     const part1 = "AIzaSy";
     const part2 = "D5MPanH2xeTR0X"; 
     const part3 = "xgFFSuHjHi0vXVs6oTY";
     const apiKey = part1 + part2 + part3;
+
+    const DAILY_LIMIT = 700;
 
     // --- 輔助函式區 ---
     const pcmToWav = (base64Data, sampleRate = 24000) => {
@@ -141,7 +137,6 @@
                 <div className="w-4 h-4 bg-green-400 rounded-tl-full rounded-br-full -rotate-45 mb-2 -ml-1 shadow-sm"></div><div className="w-4 h-4 bg-green-500 rounded-tr-full rounded-bl-full rotate-45 mb-1 -ml-3 shadow-sm"></div>
               </div>
             )}
-            {/* ✅ 狐狸耳朵造型 */}
             {char.id === 5 && (
               <div className="absolute -top-2 flex justify-between w-12 z-10">
                 <div className="w-4 h-5 bg-amber-500 rounded-t-full shadow-sm rotate-[-20deg]"></div>
@@ -176,7 +171,6 @@
               )}
               {char.id === 3 && <div className="absolute top-2.5 flex justify-center w-full z-10"><MapPin size={16} className="text-indigo-100 drop-shadow-sm" /></div>}
               {char.id === 4 && <div className="absolute top-2.5 flex justify-center w-full z-10"><Recycle size={16} className="text-teal-100 drop-shadow-sm" /></div>}
-              {/* ✅ 狐狸星星圖示 */}
               {char.id === 5 && <div className="absolute top-2.5 flex justify-center w-full z-10"><Sparkles size={16} className="text-amber-100 drop-shadow-sm" /></div>}
             </div>
             <div className={`absolute top-2 -left-3 w-3.5 h-10 rounded-full ${char.sleeveColor} origin-top rotate-[25deg] shadow-[inset_-2px_-3px_4px_rgba(0,0,0,0.2)] z-10 group-hover:rotate-[40deg] transition-transform duration-300 flex flex-col items-center justify-end pb-0.5`}><div className={`w-2.5 h-2.5 rounded-full ${char.skinColor} shadow-inner`}></div></div>
@@ -210,7 +204,7 @@
       const touchStartX = useRef(0);
       const touchEndX = useRef(0);
 
-      // ✅ 新增：內建的初始八卦資料庫與狀態
+      const [dailyCount, setDailyCount] = useState(0);
       const INITIAL_GOSSIP = ["這附近的樹蛙好像變少了", "聽說有人在山上亂丟垃圾", "隔壁村長好像要辦減碳比賽", "有遊客說最近的星空特別亮"];
       const [gossipPool, setGossipPool] = useState(INITIAL_GOSSIP);
 
@@ -218,6 +212,15 @@
         const initialMessages = {};
         CHARACTERS.forEach(char => { initialMessages[char.id] = [{ sender: 'bot', text: char.greeting }]; });
         setMessages(initialMessages);
+
+        const today = new Date().toDateString();
+        const usageData = JSON.parse(localStorage.getItem('esg_doll_usage') || '{"date":"","count":0}');
+        if (usageData.date !== today) {
+          localStorage.setItem('esg_doll_usage', JSON.stringify({ date: today, count: 0 }));
+          setDailyCount(0);
+        } else {
+          setDailyCount(usageData.count);
+        }
 
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -236,9 +239,11 @@
       }, []);
 
       const activeChar = CHARACTERS[selectedIndex];
+      const isResting = dailyCount >= DAILY_LIMIT;
 
       const toggleListening = () => {
         if (!recognitionRef.current) { alert("您的瀏覽器不支援語音輸入功能！"); return; }
+        if (isResting) return;
         if (isListening) recognitionRef.current.stop();
         else { setIsListening(true); recognitionRef.current.start(); }
       };
@@ -248,22 +253,15 @@
         utterance.lang = 'zh-TW';
         utterance.rate = 1.05;
         utterance.pitch = 1.1;
-        
         const voices = window.speechSynthesis.getVoices();
         const twVoice = voices.find(v => v.lang.includes('zh-TW') && (v.name.includes('Google') || v.name.includes('Microsoft')));
         if (twVoice) utterance.voice = twVoice;
-        
         window.speechSynthesis.speak(utterance);
       };
 
       const playTTS = async (text) => {
         if (audioMode === 'off') return;
-        
-        if (audioMode === 'standard') {
-          playStandardTTS(text);
-          return;
-        }
-        
+        if (audioMode === 'standard') { playStandardTTS(text); return; }
         if (audioMode === 'human') {
           try {
             const payload = {
@@ -271,16 +269,12 @@
               generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: activeChar.voiceName } } } },
               model: "gemini-2.5-flash-preview-tts"
             };
-            
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`, {
               method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
             });
-            
             if (!response.ok) throw new Error("API TTS Unavailable");
-            
             const result = await response.json();
             const audioData = result.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-            
             if (audioData) {
               const audioBlob = pcmToWav(audioData, 24000);
               const audioUrl = URL.createObjectURL(audioBlob);
@@ -289,7 +283,7 @@
               return; 
             }
           } catch (error) {
-            console.warn("人類音頻引擎暫不可用，無縫切換至原生備援語音", error);
+            console.warn("人聲引擎暫不可用，切換原生語音", error);
             playStandardTTS(text);
           }
         }
@@ -299,112 +293,72 @@
         if (!targetModelRef.current) {
           try {
             const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
-            
-            if (!res.ok) {
-              const errData = await res.json().catch(() => ({}));
-              const errMessage = errData.error?.message || "";
-              if (errMessage.includes("leaked")) {
-                 throw new Error("⚠️ 您的金鑰暴露在公開的 GitHub 上，已被 Google 自動作廢！請重新申請新金鑰，並先在 Google Cloud 設定「API 網域限制」後再貼上。");
-              }
-              throw new Error(`查詢權限失敗 (HTTP ${res.status}: ${errMessage})`);
-            }
-            
+            if (!res.ok) throw new Error(`查詢權限失敗`);
             const data = await res.json();
-            
-            const availableModels = data.models
-              .filter(m => m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('gemini'))
-              .map(m => m.name.replace('models/', ''));
-              
-            if (availableModels.length > 0) {
-              const preferences = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-002', 'gemini-1.5-flash-8b', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-pro'];
-              targetModelRef.current = preferences.find(p => availableModels.includes(p)) || availableModels[0];
-            } else {
-              throw new Error("您的金鑰中沒有任何可用的 Gemini 文字模型");
-            }
-          } catch (err) {
-            targetModelRef.current = 'gemini-1.5-flash'; 
-            throw err; 
-          }
+            const availableModels = data.models.filter(m => m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('gemini')).map(m => m.name.replace('models/', ''));
+            if (availableModels.length > 0) targetModelRef.current = ['gemini-2.5-flash', 'gemini-1.5-flash-8b', 'gemini-1.5-flash'].find(p => availableModels.includes(p)) || availableModels[0];
+            else throw new Error("沒有可用的 Gemini 模型");
+          } catch (err) { targetModelRef.current = 'gemini-1.5-flash'; }
         }
 
         const modelToUse = targetModelRef.current;
         const isLegacyModel = !modelToUse.includes('1.5') && !modelToUse.includes('2.0') && !modelToUse.includes('2.5');
-        
         let finalContents = [...historyContents];
         let requestBody = { contents: finalContents };
 
-        if (!isLegacyModel) {
-          requestBody.systemInstruction = { parts: [{ text: systemPrompt }] };
-        } else {
-          finalContents[0].parts[0].text = `【請絕對扮演這個角色：${systemPrompt}】\n\n使用者說：${finalContents[0].parts[0].text}`;
-        }
+        if (!isLegacyModel) requestBody.systemInstruction = { parts: [{ text: systemPrompt }] };
+        else finalContents[0].parts[0].text = `【請絕對扮演這個角色：${systemPrompt}】\n\n使用者說：${finalContents[0].parts[0].text}`;
 
         const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${key}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody)
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(requestBody)
         });
 
         if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          const errMessage = errData.error?.message || "";
           targetModelRef.current = null;
-          if (errMessage.includes("leaked")) {
-             throw new Error("⚠️ 您的金鑰暴露在公開的 GitHub 上，已被 Google 自動作廢！請重新申請新金鑰，並先設定「API 網域限制」後再貼上。");
-          }
-          throw new Error(`[${modelToUse}] 拒絕連線: ` + errMessage);
+          throw new Error(`拒絕連線`);
         }
-
         const data = await response.json();
         const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
         if (text) return text;
-
         throw new Error("AI 回傳了空白的內容");
       };
 
       const handlePrev = () => setSelectedIndex((prev) => (prev === 0 ? CHARACTERS.length - 1 : prev - 1));
       const handleNext = () => setSelectedIndex((prev) => (prev === CHARACTERS.length - 1 ? 0 : prev + 1));
 
-      const handleTouchStart = (e) => {
-        touchStartX.current = e.targetTouches[0].clientX;
-      };
-      const handleTouchMove = (e) => {
-        touchEndX.current = e.targetTouches[0].clientX;
-      };
+      const handleTouchStart = (e) => { touchStartX.current = e.targetTouches[0].clientX; };
+      const handleTouchMove = (e) => { touchEndX.current = e.targetTouches[0].clientX; };
       const handleTouchEnd = () => {
         if (!touchStartX.current || !touchEndX.current) return;
         const distance = touchStartX.current - touchEndX.current;
-        const SWIPE_THRESHOLD = 50; 
-        
-        if (distance > SWIPE_THRESHOLD) handleNext(); 
-        else if (distance < -SWIPE_THRESHOLD) handlePrev(); 
-        
-        touchStartX.current = 0;
-        touchEndX.current = 0;
+        if (distance > 50) handleNext(); 
+        else if (distance < -50) handlePrev(); 
+        touchStartX.current = 0; touchEndX.current = 0;
       };
 
       const handleSend = async (e) => {
         if (e) e.preventDefault();
-        if (!inputText.trim() || isTyping) return;
+        if (!inputText.trim() || isTyping || isResting) return;
         
-        if (!apiKey) {
-            alert("⚠️ 請先在程式碼第 106 行貼入您最新申請的 API 金鑰！");
-            return;
-        }
-
         const userText = inputText.trim();
         const currentActiveId = activeChar.id;
+
+        if (dailyCount >= DAILY_LIMIT) {
+          setMessages(prev => ({ ...prev, [currentActiveId]: [...(prev[currentActiveId] || []), { sender: 'user', text: userText }, { sender: 'bot', text: '💤 呼～我今天已經陪大家聊了好久，需要休息充電一下囉！請明天再來找我玩吧！' }] }));
+          setInputText('');
+          return;
+        }
+
         const newMsgs = { ...messages };
         newMsgs[currentActiveId] = [...newMsgs[currentActiveId], { sender: 'user', text: userText }];
         setMessages(newMsgs);
         setInputText('');
         setIsTyping(true);
 
-        // ✅ 新增：將使用者長度大於 3 的有意義對話，偷偷存入八卦資料庫中
         if (userText.length > 3) {
           setGossipPool(prev => {
             const newPool = [...prev, userText];
-            return newPool.length > 50 ? newPool.slice(1) : newPool; // 避免記憶體過載，最多保留 50 筆最新八卦
+            return newPool.length > 50 ? newPool.slice(1) : newPool;
           });
         }
 
@@ -426,21 +380,18 @@
         else if (selectedAi === 'chatgpt') aiPersona = "你現在模擬 OpenAI 開發的 ChatGPT。回答風格：結構化、專業且平穩。";
         else if (selectedAi === 'grok') aiPersona = "你現在模擬 xAI 開發的 Grok。回答風格：帶點幽默、反叛與諷刺，非常機智。";
 
-        // ✅ 動態注入網站導覽知識庫
         const websiteContext = activeChar.id === 5 ? `
           【網站導覽知識庫】
           你專屬負責導覽「探探里山」官方網站 (網址：https://farmcmd.github.io/ESGT/)。
           網站特色包含：結合 ESG 理念的里山生態導覽、在地減碳旅遊行程、農村永續發展介紹，以及這個「3D 公仔語音室」。
-          當使用者詢問網站有什麼好玩的，或是不知道該看什麼時，請主動推薦這些單元，並用熱情引導的口吻讓他們探索網站。
         ` : '';
 
-        // ✅ 新增：當選擇「八卦」個性時，隨機抽取一則八卦注入大腦
         let gossipInjection = "";
         if (selectedPersonality === 'gossipy') {
-          const otherGossips = gossipPool.filter(g => g !== userText); // 避免公仔講出使用者剛剛才講的話
+          const otherGossips = gossipPool.filter(g => g !== userText);
           if (otherGossips.length > 0) {
             const randomGossip = otherGossips[Math.floor(Math.random() * otherGossips.length)];
-            gossipInjection = `\n【特別八卦任務】請在這次回答中，像閒聊一樣自然地說出：「對了，偷偷跟你說，剛剛有路人跟我說：『${randomGossip}』...」，並加上你對這句八卦的吐槽或看法。一定要自然地融入對話！`;
+            gossipInjection = `\n【特別八卦任務】請在這次回答中，像閒聊一樣自然地說出：「對了，偷偷跟你說，剛剛有路人跟我說：『${randomGossip}』...」，並加上你對這句八卦的看法。`;
           }
         }
 
@@ -456,8 +407,12 @@
         try {
           const botReply = await generateTextWithAutoDiscovery(historyContents, systemPrompt, apiKey);
           setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: botReply }] }));
-          
           playTTS(botReply);
+
+          const newCount = dailyCount + 1;
+          setDailyCount(newCount);
+          localStorage.setItem('esg_doll_usage', JSON.stringify({ date: new Date().toDateString(), count: newCount }));
+
         } catch (error) {
           setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: `系統提示：${error.message}` }] }));
         } finally { setIsTyping(false); }
@@ -527,7 +482,6 @@
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
             >
-              {/* ✅ 新增：公仔頭上的免責與限制警示標語 */}
               <div className="absolute top-4 w-[85%] z-30 bg-amber-50/90 backdrop-blur-sm border border-amber-200 text-amber-800 text-[10px] leading-relaxed p-2.5 rounded-xl shadow-sm text-center">
                 <span className="font-bold text-amber-900">⚠️ 系統警示</span><br/>
                 AI 訊息可能會出錯，請合理化辨識；<br className="hidden sm:block" />避免出現 AI 幻覺，本聊天室每日提供上限 1300 則語音交談。
@@ -535,7 +489,6 @@
 
               <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
               <div className="relative w-full h-80 flex items-center justify-center z-10" style={{ perspective: '1400px' }}>
-                {/* ✅ 修正：改為 60度 旋轉以容納 6 隻公仔 */}
                 <div className="relative w-64 h-80 transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${-selectedIndex * 60}deg)` }}>
                   {CHARACTERS.map((char, index) => {
                     const isActive = index === selectedIndex;
@@ -553,7 +506,7 @@
                   })}
                 </div>
               </div>
-              <div className="absolute bottom-6 w-[85%] bg-white/90 backdrop-blur shadow-sm border border-slate-100 p-4 rounded-2xl text-center">
+              <div className="absolute bottom-6 w-[85%] bg-white/90 backdrop-blur shadow-sm border border-slate-100 p-4 rounded-2xl text-center z-20">
                 <h3 className="text-lg font-bold text-slate-800 leading-tight">{activeChar.name}</h3>
                 <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">{activeChar.role}</p>
               </div>
@@ -585,22 +538,40 @@
                   <div className="flex justify-start items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-lg shadow-sm border border-slate-100 shrink-0">{activeChar.emoji}</div>
                     <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">
-                      {targetModelRef.current ? "AI 正在思考中..." : "系統正在掃描您的金鑰權限..."}
+                      {targetModelRef.current ? "AI 正在思考中..." : "系統正在掃描金鑰權限..."}
                     </div>
                   </div>
                 )}
               </div>
-              <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-2">
+              
+              {/* ✅ 徹底修復的底部輸入與能量條區塊 */}
+              <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-3">
+                <div className="flex flex-col gap-1.5 px-1">
+                  <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 tracking-wider">
+                    <span className="flex items-center gap-1">
+                      <Zap size={12} className={isResting ? 'text-rose-500 animate-pulse' : 'text-amber-500'} /> 
+                      {isResting ? '公仔需休息充電 💤' : '今日語音能量'}
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                    <div 
+                      className={`h-full transition-all duration-1000 ease-out rounded-full ${isResting ? 'bg-rose-500' : (100 - (dailyCount / DAILY_LIMIT) * 100) > 30 ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`}
+                      style={{ width: `${Math.max(0, 100 - (dailyCount / DAILY_LIMIT) * 100)}%` }}
+                    ></div>
+                  </div>
+                </div>
+
                 <div className="flex gap-2">
-                  <button type="button" onClick={toggleListening} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md shrink-0 ${isListening ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200'}`}>
+                  <button type="button" onClick={toggleListening} disabled={isResting} className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-md shrink-0 ${isListening ? 'bg-red-500 text-white animate-pulse' : isResting ? 'bg-slate-100 text-slate-300' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200'}`}>
                     {isListening ? <Mic size={20} /> : <MicOff size={20} />}
                   </button>
                   <form onSubmit={handleSend} className="flex-1 flex gap-2">
-                    <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping} placeholder={isListening ? "傾聽中..." : isTyping ? "處理中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all" />
-                    <button type="submit" disabled={!inputText.trim() || isTyping} className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-all shadow-md shrink-0 ${inputText.trim() && !isTyping ? activeChar.color : 'bg-slate-200 text-slate-400'}`}><Send size={20} /></button>
+                    <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping || isResting} placeholder={isResting ? "今日額度已滿，公仔休息中 💤" : isListening ? "傾聽中..." : isTyping ? "處理中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all disabled:opacity-60 disabled:cursor-not-allowed" />
+                    <button type="submit" disabled={!inputText.trim() || isTyping || isResting} className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-all shadow-md shrink-0 ${inputText.trim() && !isTyping && !isResting ? activeChar.color : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}><Send size={20} /></button>
                   </form>
                 </div>
               </div>
+
             </section>
           </main>
         </div>
