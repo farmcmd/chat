@@ -72,7 +72,7 @@
     ];
 
     // ✅ 您專屬的 API 金鑰
-    const apiKey = "AIzaSyB6snoI7ggEUN62MVi6wC8BAmHL1wlDDFQ"; 
+    const apiKey = "AIzaSyBYl71zbpyFSAc4aL1g3ovlmMbrFUjluHc"; 
 
     // --- 輔助函式區 ---
     const pcmToWav = (base64Data, sampleRate = 24000) => {
@@ -91,48 +91,6 @@
       const rawPcm = new Int16Array(byteArray.buffer);
       pcmData.set(rawPcm);
       return new Blob([buffer], { type: 'audio/wav' });
-    };
-
-    // ✅ 全新智慧大腦引擎：解決 Canvas預覽 / GitHub 正式環境的模型衝突問題
-    const generateTextWithFallback = async (historyContents, systemPrompt, key) => {
-      const modelsToTry = [
-        'gemini-2.5-flash-preview-09-2025', // 專為 Canvas 預覽環境設計，避免被攔截
-        'gemini-2.0-flash',                 // 最新公開版模型 (GitHub 首選)
-        'gemini-1.5-flash-latest',          // 穩定版別名 (GitHub 備援)
-        'gemini-1.5-flash'                  // 基礎穩定版
-      ];
-
-      let lastErrorMsg = "";
-
-      // 像接力賽一樣，一個失敗就自動換下一個模型嘗試，確保 100% 成功回覆
-      for (const model of modelsToTry) {
-        try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: historyContents,
-              systemInstruction: { parts: [{ text: systemPrompt }] }
-            })
-          });
-
-          if (!response.ok) {
-            const errData = await response.json().catch(() => ({}));
-            throw new Error(errData.error?.message || `HTTP ${response.status}`);
-          }
-
-          const data = await response.json();
-          const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (text) {
-            console.log(`✅ 成功使用大腦模型: ${model}`);
-            return text;
-          }
-        } catch (err) {
-          console.warn(`嘗試模型 ${model} 被拒絕，自動切換備援...`, err.message);
-          lastErrorMsg = err.message;
-        }
-      }
-      throw new Error(`所有大腦模型皆無法連線。最後錯誤: ${lastErrorMsg}`);
     };
 
     // --- 3D 公仔渲染組件 ---
@@ -231,6 +189,9 @@
       const [isListening, setIsListening] = useState(false);
       const [audioMode, setAudioMode] = useState('standard'); 
       const recognitionRef = useRef(null);
+      
+      // ✅ 新增：儲存系統自動找到的「正確模型名稱」
+      const targetModelRef = useRef(null);
 
       useEffect(() => {
         const initialMessages = {};
@@ -313,6 +274,74 @@
         }
       };
 
+      // ✅ 終極智慧雷達系統：向 Google 查詢金鑰能使用的模型
+      const generateTextWithAutoDiscovery = async (historyContents, systemPrompt, key) => {
+        // 第一步：自動探索 (如果還沒探索過)
+        if (!targetModelRef.current) {
+          try {
+            console.log("🔍 啟動雷達：正在向 Google 查詢您的金鑰權限...");
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`);
+            
+            if (!res.ok) throw new Error(`查詢權限失敗 (HTTP ${res.status})`);
+            
+            const data = await res.json();
+            
+            // 過濾出支援「文字生成」的 Gemini 模型
+            const availableModels = data.models
+              .filter(m => m.supportedGenerationMethods?.includes('generateContent') && m.name.includes('gemini'))
+              .map(m => m.name.replace('models/', ''));
+              
+            console.log("✅ 雷達掃描完成！此金鑰可使用的模型清單:", availableModels);
+            
+            if (availableModels.length > 0) {
+              // 自動挑選最高級的模型
+              const preferences = ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash-002', 'gemini-1.5-flash-8b', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-pro'];
+              targetModelRef.current = preferences.find(p => availableModels.includes(p)) || availableModels[0];
+            } else {
+              throw new Error("您的金鑰中沒有任何可用的 Gemini 文字模型");
+            }
+          } catch (err) {
+            console.warn("雷達探索失敗，啟動盲測模式:", err.message);
+            targetModelRef.current = 'gemini-1.5-flash'; // 盲測預設值
+          }
+        }
+
+        const modelToUse = targetModelRef.current;
+        console.log(`🚀 本次大腦對話使用的模型為: ${modelToUse}`);
+
+        // 判斷是否為不支援系統提示的舊模型
+        const isLegacyModel = !modelToUse.includes('1.5') && !modelToUse.includes('2.0') && !modelToUse.includes('2.5');
+        
+        let finalContents = [...historyContents];
+        let requestBody = { contents: finalContents };
+
+        if (!isLegacyModel) {
+          requestBody.systemInstruction = { parts: [{ text: systemPrompt }] };
+        } else {
+          // 針對舊模型防呆：將人設塞進使用者的第一句話
+          finalContents[0].parts[0].text = `【請絕對扮演這個角色：${systemPrompt}】\n\n使用者說：${finalContents[0].parts[0].text}`;
+        }
+
+        // 第二步：發送對話
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          targetModelRef.current = null; // 清除記憶體，下次重新掃描
+          throw new Error(`[${modelToUse}] 拒絕連線: ` + (errData.error?.message || `HTTP ${response.status}`));
+        }
+
+        const data = await response.json();
+        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text) return text;
+
+        throw new Error("AI 回傳了空白的內容");
+      };
+
       const handlePrev = () => setSelectedIndex((prev) => (prev === 0 ? CHARACTERS.length - 1 : prev - 1));
       const handleNext = () => setSelectedIndex((prev) => (prev === CHARACTERS.length - 1 ? 0 : prev + 1));
 
@@ -360,8 +389,8 @@
         `;
 
         try {
-          // 呼叫全新的智慧大腦引擎
-          const botReply = await generateTextWithFallback(historyContents, systemPrompt, apiKey);
+          // ✅ 呼叫具備自動雷達掃描功能的發送系統
+          const botReply = await generateTextWithAutoDiscovery(historyContents, systemPrompt, apiKey);
           setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: botReply }] }));
           
           playTTS(botReply);
@@ -479,7 +508,9 @@
                 {isTyping && (
                   <div className="flex justify-start items-center gap-2">
                     <div className="w-8 h-8 flex items-center justify-center bg-white rounded-full text-lg shadow-sm border border-slate-100 shrink-0">{activeChar.emoji}</div>
-                    <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">AI 正在思考中...</div>
+                    <div className="bg-white/80 border border-slate-100 px-4 py-3 rounded-2xl rounded-bl-sm flex gap-1 shadow-sm italic text-xs text-slate-400 animate-pulse">
+                      {targetModelRef.current ? "AI 正在思考中..." : "系統正在掃描您的金鑰權限..."}
+                    </div>
                   </div>
                 )}
               </div>
@@ -489,7 +520,7 @@
                     {isListening ? <Mic size={20} /> : <MicOff size={20} />}
                   </button>
                   <form onSubmit={handleSend} className="flex-1 flex gap-2">
-                    <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping} placeholder={isListening ? "傾聽中..." : isTyping ? "思考中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all" />
+                    <input type="text" value={inputText} onChange={(e) => setInputText(e.target.value)} disabled={isTyping} placeholder={isListening ? "傾聽中..." : isTyping ? "處理中..." : "輸入訊息..."} className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 transition-all" />
                     <button type="submit" disabled={!inputText.trim() || isTyping} className={`w-12 h-12 rounded-full flex items-center justify-center text-white transition-all shadow-md shrink-0 ${inputText.trim() && !isTyping ? activeChar.color : 'bg-slate-200 text-slate-400'}`}><Send size={20} /></button>
                   </form>
                 </div>
