@@ -75,7 +75,9 @@
       { id: 'venting', label: '發洩', emoji: '🌋' }
     ];
 
-    // ✅ 您提供的專屬金鑰
+    // ✅ 您提供的專屬金鑰 (已補回宣告)
+    const apiKey = "AIzaSyABP6uUHBASXZJ7AnVwdFmw56qMtmKpP-4"; 
+
     // --- 輔助函式區 ---
     const pcmToWav = (base64Data, sampleRate = 24000) => {
       const byteCharacters = atob(base64Data);
