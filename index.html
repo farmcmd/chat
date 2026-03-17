@@ -44,8 +44,7 @@
 
     // --- 設定檔區 ---
     const CHARACTERS = [
-      // ✅ 將「探探里山小幫手」移至陣列第一位，成為預設載入的公仔
-      { id: 5, name: '探探里山小幫手', role: '網站導覽與活動助手', emoji: '🦊', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-amber-400', sleeveColor: 'bg-amber-400', legColor: 'bg-orange-600', shoeColor: 'bg-amber-900', color: 'bg-amber-500', baseColor: 'bg-amber-600', lightColor: 'bg-amber-100', greeting: '您好！我是探探里山小幫手 🦊。想了解探探里山網站上有哪些有趣的活動或導覽功能嗎？', voiceName: 'Kore' },
+      { id: 5, name: '探探里山小幫手', role: '網站導覽與系統客服', emoji: '🦊', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-amber-400', sleeveColor: 'bg-amber-400', legColor: 'bg-orange-600', shoeColor: 'bg-amber-900', color: 'bg-amber-500', baseColor: 'bg-amber-600', lightColor: 'bg-amber-100', greeting: '您好！我是探探里山小幫手 🦊。遇到系統操作問題，或是想了解企業歸戶、綠消評鑑怎麼算，都可以直接問我喔！', voiceName: 'Kore' },
       { id: 0, name: '環境永續博士', role: '全球氣候與永續發展專家', emoji: '👨‍🔬', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-slate-50', sleeveColor: 'bg-slate-50', legColor: 'bg-slate-800', shoeColor: 'bg-slate-900', color: 'bg-emerald-500', baseColor: 'bg-emerald-600', lightColor: 'bg-emerald-100', greeting: '你好！我是環境永續博士。想了解 ESG 或全球氣候變遷的趨勢嗎？', voiceName: 'Charon' },
       { id: 1, name: '聊天萌娃陪你打屁', role: '你的日常傾聽好夥伴', emoji: '🧸', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-blue-400', sleeveColor: 'bg-blue-400', legColor: 'bg-sky-500', shoeColor: 'bg-white', color: 'bg-blue-400', baseColor: 'bg-blue-500', lightColor: 'bg-blue-100', greeting: '嘿！我是聊天萌娃～今天過得好嗎？不管什麼煩惱都可以跟我說喔！', voiceName: 'Leda' },
       { id: 2, name: '生態小博士', role: '動植物與自然生態達人', emoji: '🤠', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-[#c19a6b]', sleeveColor: 'bg-green-200', legColor: 'bg-[#8b5a2b]', shoeColor: 'bg-[#5c3a21]', color: 'bg-green-500', baseColor: 'bg-green-600', lightColor: 'bg-green-100', greeting: '嗨！我是生態小博士。大自然充滿奧秘，你想認識哪種稀有動植物呢？', voiceName: 'Puck' },
@@ -76,9 +75,6 @@
     const part3 = "xgFFSuHjHi0vXVs6oTY";
     const apiKey = part1 + part2 + part3;
 
-    // 💡 測試秘技：如果您想親眼看看能量條像漏水一樣減少的動畫，
-    // 請暫時把這裡的 1400 改成 10。測試完再改回 1400 即可！
-    // ✅ 修改：將上限改為 1400 (實際 API 呼叫次數總額度，保留 100 次的安全緩衝)
     const DAILY_LIMIT = 1400;
 
     // --- 輔助函式區 ---
@@ -384,26 +380,31 @@
         else if (selectedAi === 'chatgpt') aiPersona = "你現在模擬 OpenAI 開發的 ChatGPT。回答風格：結構化、專業且平穩。";
         else if (selectedAi === 'grok') aiPersona = "你現在模擬 xAI 開發的 Grok。回答風格：帶點幽默、反叛與諷刺，非常機智。";
 
-        // ✅ 擴充版：探探里山專屬「深度導覽知識庫」
+        // ✅ 強力擴充版：依據《探探里山使用手冊.docx》植入系統全知知識庫
         const websiteContext = activeChar.id === 5 ? `
-          【網站導覽專屬知識庫】(請務必根據以下真實資訊來回答使用者，若無資料請引導至首頁)
-          你專屬負責導覽「探探里山」官方網站 (網址：https://farmcmd.github.io/ESGT/)。
+          【探探里山 - 系統操作與客服知識庫】(請務必根據以下真實資訊回答使用者，若無資料請引導至首頁)
+          你現在是「探探里山」官方系統操作與導覽客服。你的任務是解答使用者對於系統操作、歸戶機制、與角色功能的疑問。
           
-          ■ 網站核心理念：
-          結合 ESG (環境、社會、公司治理) 理念，推廣里山生態保育、在地減碳旅遊與農村永續發展。
+          ■ 系統核心功能：
+          - 身分識別：免註冊，首頁輸入姓名即配發專屬代碼。
+          - 數據記錄：點擊交通圖示記錄減碳足跡；使用「綠色消費評鑑」記錄小農消費與SROI價值。
+          - 備份機制：資料自動存在瀏覽器Local Storage，換手機請用首頁底部的「匯出/匯入進度檔(.json)」。
           
-          ■ 主要導覽單元與網址動線 (請根據使用者問題推薦對應單元)：
-          1. 【里山生態導覽】：介紹當地特有動植物與棲地保護成果。(請引導至網站選單的「生態介紹」)
-          2. 【低碳旅遊行程】：提供不破壞環境的步行、自行車深度體驗路線。(請引導至「旅遊行程」專區)
-          3. 【循環經濟應用】：展示農業廢棄物如何變身為實用文創商品。(請引導至「永續商品」)
-          4. 【3D 公仔語音室】：就是我們現在的地方！可以和多位專家互動學習。
+          ■ 5大使用者角色與功能歸戶：
+          1. 一般旅者：記錄足跡與綠消，可隨時「下載永續旅遊證書」。
+          2. 企業員工：參與公司活動，結束後點擊[企業永續儀表板]填寫12題ESG自評表並「確認結算歸戶」。
+          3. 政府計畫參與者：結束後點擊[永續政府計畫]填寫11題滿意度並歸戶。
+          4. 企業ESG管理人/福委會：建立企業專案、設定採購SROI與截止日，一鍵匯出PNG圖表做報告。
+          5. 政府計畫主持人：建立專案、設定預算與SROI倍數，追蹤成效並匯出圖表核銷。
           
-          ■ 訪客常見問題 (FAQ) 指南：
-          - 問「怎麼報名活動/導覽？」 -> 答：「您可以點擊網站首頁上方的『活動報名』按鈕查看最新梯次喔！」
-          - 問「網站有什麼好玩的？」 -> 答：「強力推薦去看看我們的『低碳旅遊行程』，或是繼續在語音室跟其他專家（如環境博士、生態小博士）聊聊天！」
-          - 問「你們的地址/在哪裡？」 -> 答：「我們是一個推廣里山倡議的線上平台，具體的實體活動地點會依照每期行程在網站上公告喔！」
-          
-          (請維持你設定的個性和心情，並將以上資訊自然地融入對話中，不要像機器人唸稿。)
+          ■ 常見問題 (FAQ) 標準答案：
+          - 問「怎麼紀錄減碳足跡？」 -> 答：「只要在頁面上看到那些『可愛的交通圖示』，狠狠給它點下去就對了！然後在任務頁面中的景點設定起點與終點，系統就會自動幫你標出路線並計算減碳數量喔！」
+          - 問「為什麼歸戶後里程/減碳量歸零？」 -> 答：「這是正常的數據轉移！數據已正式存入企業/政府大水庫，避免重複計算。系統已為您自動下載當下的永續證書作紀念。」
+          - 問「快速手動輸入里程的密碼是什麼？」 -> 答：「這是專為遊覽車等高載量團體設計的通道，為了維持公信力，密碼需由現場工作人員或領隊輸入喔！」
+          - 問「SROI與一般綠色消費差在哪？」 -> 答：「一般綠消是買有機農產；SROI則是經過認證的合作農場消費，每一塊錢能創造更高倍數(如1.95倍)的社會與環境效益加權！」
+          - 問「儀表板的ESG分數怎麼算的？」 -> 答：「我們採用『動態權重映射演算法』換算為5星制，能精準反映環境(E)、社會(S)、治理(G)的相對強弱與總平均。」
+
+          (請維持你設定的個性和心情，並將以上資訊自然地融入對話中，回答請精簡100字以內。)
         ` : '';
 
         let gossipInjection = "";
@@ -566,7 +567,6 @@
                 )}
               </div>
               
-              {/* ✅ 徹底修復的底部輸入與能量條區塊 */}
               <div className="p-4 bg-white border-t border-slate-100 flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5 px-1">
                   <div className="flex justify-between items-center text-[10px] font-bold text-slate-400 tracking-wider">
@@ -575,7 +575,6 @@
                       {isResting ? '公仔需休息充電 💤' : '今日語音能量'}
                     </span>
                   </div>
-                  {/* ✅ 新增：加入 title 屬性，電腦版滑鼠移過去可偷看實際剩餘 % 數，同時加入發送時的微光暈特效 */}
                   <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner relative" title={`目前剩餘能量：${Math.max(0, 100 - (dailyCount / DAILY_LIMIT) * 100).toFixed(1)}%`}>
                     <div 
                       className={`h-full transition-all duration-1000 ease-out rounded-full ${isTyping ? 'brightness-125 shadow-[0_0_8px_rgba(251,191,36,0.6)]' : ''} ${isResting ? 'bg-rose-500' : (100 - (dailyCount / DAILY_LIMIT) * 100) > 30 ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`}
