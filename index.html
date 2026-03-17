@@ -76,8 +76,9 @@
     const apiKey = part1 + part2 + part3;
 
     // 💡 測試秘技：如果您想親眼看看能量條像漏水一樣減少的動畫，
-    // 請暫時把這裡的 700 改成 10 (聊一次扣 10%)。測試完再改回 700 即可！
-    const DAILY_LIMIT = 700;
+    // 請暫時把這裡的 1400 改成 10。測試完再改回 1400 即可！
+    // ✅ 修改：將上限改為 1400 (實際 API 呼叫次數總額度，保留 100 次的安全緩衝)
+    const DAILY_LIMIT = 1400;
 
     // --- 輔助函式區 ---
     const pcmToWav = (base64Data, sampleRate = 24000) => {
@@ -411,7 +412,9 @@
           setMessages(prev => ({ ...prev, [currentActiveId]: [...prev[currentActiveId], { sender: 'bot', text: botReply }] }));
           playTTS(botReply);
 
-          const newCount = dailyCount + 1;
+          // ✅ 動態精準扣除：如果使用「人聲 (Gemini API)」，消耗 2 次額度；若靜音或使用原生語音，僅消耗 1 次額度
+          const apiCost = (audioMode === 'human') ? 2 : 1;
+          const newCount = dailyCount + apiCost;
           setDailyCount(newCount);
           localStorage.setItem('esg_doll_usage', JSON.stringify({ date: new Date().toDateString(), count: newCount }));
 
