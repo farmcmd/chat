@@ -75,6 +75,8 @@
     const part3 = "xgFFSuHjHi0vXVs6oTY";
     const apiKey = part1 + part2 + part3;
 
+    // 💡 測試秘技：如果您想親眼看看能量條像漏水一樣減少的動畫，
+    // 請暫時把這裡的 700 改成 10 (聊一次扣 10%)。測試完再改回 700 即可！
     const DAILY_LIMIT = 700;
 
     // --- 輔助函式區 ---
@@ -553,9 +555,10 @@
                       {isResting ? '公仔需休息充電 💤' : '今日語音能量'}
                     </span>
                   </div>
-                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+                  {/* ✅ 新增：加入 title 屬性，電腦版滑鼠移過去可偷看實際剩餘 % 數，同時加入發送時的微光暈特效 */}
+                  <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden shadow-inner relative" title={`目前剩餘能量：${Math.max(0, 100 - (dailyCount / DAILY_LIMIT) * 100).toFixed(1)}%`}>
                     <div 
-                      className={`h-full transition-all duration-1000 ease-out rounded-full ${isResting ? 'bg-rose-500' : (100 - (dailyCount / DAILY_LIMIT) * 100) > 30 ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`}
+                      className={`h-full transition-all duration-1000 ease-out rounded-full ${isTyping ? 'brightness-125 shadow-[0_0_8px_rgba(251,191,36,0.6)]' : ''} ${isResting ? 'bg-rose-500' : (100 - (dailyCount / DAILY_LIMIT) * 100) > 30 ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'}`}
                       style={{ width: `${Math.max(0, 100 - (dailyCount / DAILY_LIMIT) * 100)}%` }}
                     ></div>
                   </div>
