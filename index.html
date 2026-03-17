@@ -44,12 +44,13 @@
 
     // --- 設定檔區 ---
     const CHARACTERS = [
+      // ✅ 將「探探里山小幫手」移至陣列第一位，成為預設載入的公仔
+      { id: 5, name: '探探里山小幫手', role: '網站導覽與活動助手', emoji: '🦊', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-amber-400', sleeveColor: 'bg-amber-400', legColor: 'bg-orange-600', shoeColor: 'bg-amber-900', color: 'bg-amber-500', baseColor: 'bg-amber-600', lightColor: 'bg-amber-100', greeting: '您好！我是探探里山小幫手 🦊。想了解探探里山網站上有哪些有趣的活動或導覽功能嗎？', voiceName: 'Kore' },
       { id: 0, name: '環境永續博士', role: '全球氣候與永續發展專家', emoji: '👨‍🔬', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-slate-50', sleeveColor: 'bg-slate-50', legColor: 'bg-slate-800', shoeColor: 'bg-slate-900', color: 'bg-emerald-500', baseColor: 'bg-emerald-600', lightColor: 'bg-emerald-100', greeting: '你好！我是環境永續博士。想了解 ESG 或全球氣候變遷的趨勢嗎？', voiceName: 'Charon' },
       { id: 1, name: '聊天萌娃陪你打屁', role: '你的日常傾聽好夥伴', emoji: '🧸', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-blue-400', sleeveColor: 'bg-blue-400', legColor: 'bg-sky-500', shoeColor: 'bg-white', color: 'bg-blue-400', baseColor: 'bg-blue-500', lightColor: 'bg-blue-100', greeting: '嘿！我是聊天萌娃～今天過得好嗎？不管什麼煩惱都可以跟我說喔！', voiceName: 'Leda' },
       { id: 2, name: '生態小博士', role: '動植物與自然生態達人', emoji: '🤠', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-[#c19a6b]', sleeveColor: 'bg-green-200', legColor: 'bg-[#8b5a2b]', shoeColor: 'bg-[#5c3a21]', color: 'bg-green-500', baseColor: 'bg-green-600', lightColor: 'bg-green-100', greeting: '嗨！我是生態小博士。大自然充滿奧秘，你想認識哪種稀有動植物呢？', voiceName: 'Puck' },
       { id: 3, name: '永續旅遊專家', role: '低碳旅行與在地文化達人', emoji: '🚂', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-indigo-400', sleeveColor: 'bg-indigo-400', legColor: 'bg-slate-600', shoeColor: 'bg-slate-800', color: 'bg-indigo-500', baseColor: 'bg-indigo-600', lightColor: 'bg-indigo-100', greeting: '出發囉！我是永續旅遊專家。想知道如何玩得盡興、深入在地又能降低碳足跡嗎？', voiceName: 'Zephyr' },
-      { id: 4, name: '循環小精靈', role: '資源回收與零廢棄導師', emoji: '🧚', skinColor: 'bg-teal-100', outfitColor: 'bg-teal-500', sleeveColor: 'bg-teal-500', legColor: 'bg-teal-700', shoeColor: 'bg-teal-900', color: 'bg-teal-500', baseColor: 'bg-teal-600', lightColor: 'bg-teal-100', greeting: '轉轉轉！我是循環小精靈。垃圾其實都是放錯位置的資源，我們來做分類吧！', voiceName: 'Aoede' },
-      { id: 5, name: '探探里山小幫手', role: '網站導覽與活動助手', emoji: '🦊', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-amber-400', sleeveColor: 'bg-amber-400', legColor: 'bg-orange-600', shoeColor: 'bg-amber-900', color: 'bg-amber-500', baseColor: 'bg-amber-600', lightColor: 'bg-amber-100', greeting: '您好！我是探探里山小幫手 🦊。想了解探探里山網站上有哪些有趣的活動或導覽功能嗎？', voiceName: 'Kore' }
+      { id: 4, name: '循環小精靈', role: '資源回收與零廢棄導師', emoji: '🧚', skinColor: 'bg-teal-100', outfitColor: 'bg-teal-500', sleeveColor: 'bg-teal-500', legColor: 'bg-teal-700', shoeColor: 'bg-teal-900', color: 'bg-teal-500', baseColor: 'bg-teal-600', lightColor: 'bg-teal-100', greeting: '轉轉轉！我是循環小精靈。垃圾其實都是放錯位置的資源，我們來做分類吧！', voiceName: 'Aoede' }
     ];
 
     const PERSONALITIES = [
