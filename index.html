@@ -49,7 +49,8 @@
       { id: 1, name: '聊天萌娃陪你打屁', role: '你的日常傾聽好夥伴', emoji: '🧸', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-blue-400', sleeveColor: 'bg-blue-400', legColor: 'bg-sky-500', shoeColor: 'bg-white', color: 'bg-blue-400', baseColor: 'bg-blue-500', lightColor: 'bg-blue-100', greeting: '嘿！我是聊天萌娃～今天過得好嗎？不管什麼煩惱都可以跟我說喔！', voiceName: 'Leda' },
       { id: 2, name: '生態小博士', role: '動植物與自然生態達人', emoji: '🤠', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-[#c19a6b]', sleeveColor: 'bg-green-200', legColor: 'bg-[#8b5a2b]', shoeColor: 'bg-[#5c3a21]', color: 'bg-green-500', baseColor: 'bg-green-600', lightColor: 'bg-green-100', greeting: '嗨！我是生態小博士。大自然充滿奧秘，你想認識哪種稀有動植物呢？', voiceName: 'Puck' },
       { id: 3, name: '永續旅遊專家', role: '低碳旅行與在地文化達人', emoji: '🚂', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-indigo-400', sleeveColor: 'bg-indigo-400', legColor: 'bg-slate-600', shoeColor: 'bg-slate-800', color: 'bg-indigo-500', baseColor: 'bg-indigo-600', lightColor: 'bg-indigo-100', greeting: '出發囉！我是永續旅遊專家。想知道如何玩得盡興、深入在地又能降低碳足跡嗎？', voiceName: 'Zephyr' },
-      { id: 4, name: '循環小精靈', role: '資源回收與零廢棄導師', emoji: '🧚', skinColor: 'bg-teal-100', outfitColor: 'bg-teal-500', sleeveColor: 'bg-teal-500', legColor: 'bg-teal-700', shoeColor: 'bg-teal-900', color: 'bg-teal-500', baseColor: 'bg-teal-600', lightColor: 'bg-teal-100', greeting: '轉轉轉！我是循環小精靈。垃圾其實都是放錯位置的資源，我們來做分類吧！', voiceName: 'Aoede' }
+      { id: 4, name: '循環小精靈', role: '資源回收與零廢棄導師', emoji: '🧚', skinColor: 'bg-teal-100', outfitColor: 'bg-teal-500', sleeveColor: 'bg-teal-500', legColor: 'bg-teal-700', shoeColor: 'bg-teal-900', color: 'bg-teal-500', baseColor: 'bg-teal-600', lightColor: 'bg-teal-100', greeting: '轉轉轉！我是循環小精靈。垃圾其實都是放錯位置的資源，我們來做分類吧！', voiceName: 'Aoede' },
+      { id: 6, name: '食農綠生活', role: '低碳飲食與小農守護者', emoji: '🧑‍🌾', skinColor: 'bg-[#ffdfc4]', outfitColor: 'bg-lime-500', sleeveColor: 'bg-lime-500', legColor: 'bg-yellow-800', shoeColor: 'bg-yellow-950', color: 'bg-lime-500', baseColor: 'bg-lime-600', lightColor: 'bg-lime-100', greeting: '早安！我是食農綠生活達人 🧑‍🌾。想知道怎麼吃得健康又能保護地球嗎？跟我聊聊在地食材與小農故事吧！', voiceName: 'Fenrir' }
     ];
 
     const PERSONALITIES = [
@@ -143,6 +144,10 @@
                 <div className="w-4 h-5 bg-amber-500 rounded-t-full shadow-sm rotate-[20deg]"></div>
               </div>
             )}
+            {/* ✅ 為食農公仔加上專屬的小農夫草帽裝飾 */}
+            {char.id === 6 && (
+              <div className="absolute -top-3 w-16 h-6 bg-yellow-600 rounded-t-xl z-40 shadow-sm border-b-4 border-yellow-700"></div>
+            )}
           </div>
           <div className={`w-4 h-3 rounded-full ${char.skinColor} -mt-1 mb-[-0.5rem] z-20 shadow-inner brightness-90`}></div>
           <div className="relative z-20 flex flex-col items-center">
@@ -172,6 +177,8 @@
               {char.id === 3 && <div className="absolute top-2.5 flex justify-center w-full z-10"><MapPin size={16} className="text-indigo-100 drop-shadow-sm" /></div>}
               {char.id === 4 && <div className="absolute top-2.5 flex justify-center w-full z-10"><Recycle size={16} className="text-teal-100 drop-shadow-sm" /></div>}
               {char.id === 5 && <div className="absolute top-2.5 flex justify-center w-full z-10"><Sparkles size={16} className="text-amber-100 drop-shadow-sm" /></div>}
+              {/* ✅ 胸前加上稻穗標誌 */}
+              {char.id === 6 && <div className="absolute top-2.5 flex justify-center w-full z-10"><span className="text-[14px] drop-shadow-sm grayscale contrast-200">🌾</span></div>}
             </div>
             <div className={`absolute top-2 -left-3 w-3.5 h-10 rounded-full ${char.sleeveColor} origin-top rotate-[25deg] shadow-[inset_-2px_-3px_4px_rgba(0,0,0,0.2)] z-10 group-hover:rotate-[40deg] transition-transform duration-300 flex flex-col items-center justify-end pb-0.5`}><div className={`w-2.5 h-2.5 rounded-full ${char.skinColor} shadow-inner`}></div></div>
             <div className={`absolute top-2 -right-3 w-3.5 h-10 rounded-full ${char.sleeveColor} origin-top -rotate-[25deg] shadow-[inset_2px_-3px_4px_rgba(0,0,0,0.2)] z-10 group-hover:-rotate-[40deg] transition-transform duration-300 flex flex-col items-center justify-end pb-0.5`}><div className={`w-2.5 h-2.5 rounded-full ${char.skinColor} shadow-inner`}></div></div>
@@ -500,11 +507,11 @@
 
               <div className="absolute inset-0 opacity-5 pointer-events-none" style={{backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
               <div className="relative w-full h-80 flex items-center justify-center z-10" style={{ perspective: '1400px' }}>
-                <div className="relative w-64 h-80 transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${-selectedIndex * 60}deg)` }}>
+                <div className="relative w-64 h-80 transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)]" style={{ transformStyle: 'preserve-3d', transform: `rotateY(${-selectedIndex * (360 / CHARACTERS.length)}deg)` }}>
                   {CHARACTERS.map((char, index) => {
                     const isActive = index === selectedIndex;
                     return (
-                      <div key={char.id} className="absolute inset-0 flex flex-col items-center justify-end p-4 cursor-pointer group" style={{ transform: `rotateY(${index * 60}deg) translateZ(240px)`, backfaceVisibility: 'hidden' }} onClick={() => setSelectedIndex(index)}>
+                      <div key={char.id} className="absolute inset-0 flex flex-col items-center justify-end p-4 cursor-pointer group" style={{ transform: `rotateY(${index * (360 / CHARACTERS.length)}deg) translateZ(240px)`, backfaceVisibility: 'hidden' }} onClick={() => setSelectedIndex(index)}>
                         <div className="relative flex flex-col items-center justify-end w-full mb-8">
                           <FullBodyDoll char={char} isActive={isActive} />
                           <div className={`absolute -bottom-4 w-36 h-10 rounded-[50%] ${char.color} shadow-[0_12px_15px_rgba(0,0,0,0.3)] z-0 transition-all duration-700 ${isActive ? 'scale-100 opacity-100' : 'scale-75 opacity-40'}`}>
